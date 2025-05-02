@@ -4,30 +4,31 @@ namespace GraduationProject.Dto
 {
     public class RecommendationResult
     {
-        [JsonPropertyName("CourseId")]
+        [JsonPropertyName("Course ID")]
         public int CourseId { get; set; }
 
-        [JsonPropertyName("Name")]
-        public string Name { get; set; }
+        [JsonPropertyName("Course Title")]
+        public string CourseTitle { get; set; }
 
+        [JsonPropertyName("AverageRating")]
+        public double AverageRating { get; set; }
 
-        [JsonPropertyName("describtion")]  
-        public string Describtion { get; set; }
+        [JsonPropertyName("ImgUrl")]
+        public string ImgUrl { get; set; }
 
-        [JsonPropertyName("Keywords")]
-        public string Keywords { get; set; }
+        [JsonPropertyName("Difficulty Level")]
+        public string DifficultyLevel { get; set; }
 
         [JsonPropertyName("CourseCategory")]
         public string CourseCategory { get; set; }
+      
+        [JsonPropertyName("price")]
+        public double Price { get; set; }
 
-        [JsonPropertyName("LevelOfCourse")]
-        public string LevelOfCourse { get; set; }
+        [JsonPropertyName("discount")]
+        public double Discount { get; set; }
 
-        [JsonPropertyName("Average Rating")]
-        public double AverageRating { get; set; }
-
-
-        [JsonPropertyName("imgUrl")]
-        public string ImgUrl { get; set; }
+        [JsonPropertyName("discounted_price")]
+        public double DiscountedPrice { get; set; }
     }
 }

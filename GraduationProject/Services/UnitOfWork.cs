@@ -11,6 +11,9 @@ namespace GraduationProject.Services
         public ICourseRepository Courses { get; private set; }
         public IGenaricRepository<Contactus> Contactus { get; private set; }
         public IGenaricRepository<Category> category { get; private set; }
+        public IGenaricRepository<Subscription> Subscribtion { get; private set; }
+        public IGenaricRepository<ToDo> ToDo { get; private set; }
+        
         public UnitOfWork(AppDBContext dBContext)
         {
             _dbContext= dBContext;
@@ -18,6 +21,8 @@ namespace GraduationProject.Services
             Courses = new CourseRepository(dBContext);
             Contactus = new GenaricRepository<Contactus>(dBContext);
             category = new GenaricRepository<Category>(dBContext);
+            Subscribtion = new GenaricRepository<Subscription>(dBContext);
+            ToDo = new GenaricRepository<ToDo>(dBContext);
         }
         public int Complete()
         {

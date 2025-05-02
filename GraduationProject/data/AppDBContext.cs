@@ -135,5 +135,6 @@ namespace GraduationProject.data
         public DbSet<User> Users { get; set; }
         public DbSet<Category> category { get; set; }
         public DbSet<stripe_session> Stripe { get; set; }
+        public DbSet<ToDo> Todo { get; set; }
     }
 }

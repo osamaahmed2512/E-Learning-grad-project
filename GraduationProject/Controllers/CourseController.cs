@@ -446,6 +446,53 @@ namespace GraduationProject.Controllers
                 return StatusCode(500, new { Message = "An error occurred while updating the rating", Error = ex.Message });
             }
         }
+        [HttpGet("getTotalEarningsOfStudent")]
+        [Authorize(Policy = "TeacherPolicy")]
+        public async Task<IActionResult> getEarning()
+        {
+            try
+            { var UserIdCaim = User.FindFirst("Id");
+                if(UserIdCaim == null)
+                {
+                    return Unauthorized("User Id Is not found in the claim");
+                }
+                int userclaim = int.Parse(UserIdCaim.Value);
 
+
+                var earning =await _unitOfWork.Subscribtion.FindAllAsync(s => s.Course.Instructor_Id == userclaim, new[] { "Course" });
+                decimal totalEarnings = earning.Sum(s =>s.InstructorProfit);
+                return Ok(new {ToTalEarning = totalEarnings });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while calculating earnings.");
+            }
+
+        }
+
+        //[HttpGet("getTotalPayment")]
+        //[Authorize(Policy = "TeacherPolicy")]
+        //public async Task<IActionResult> getEarning()
+        //{
+        //    try
+        //    {
+        //        var UserIdCaim = User.FindFirst("Id");
+        //        if (UserIdCaim == null)
+        //        {
+        //            return Unauthorized("User Id Is not found in the claim");
+        //        }
+        //        int userclaim = int.Parse(UserIdCaim.Value);
+
+
+        //        var earning = await _unitOfWork.Subscribtion.FindAllAsync(s => s.Course.Instructor_Id == userclaim, new[] { "Course" });
+        //        decimal totalEarnings = earning.Sum(s => s.InstructorProfit);
+        //        return Ok(new { ToTalEarning = totalEarnings });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, "An error occurred while calculating earnings.");
+        //    }
+
+        //}
     }
 }

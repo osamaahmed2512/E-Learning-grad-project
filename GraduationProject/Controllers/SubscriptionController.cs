@@ -16,10 +16,11 @@ namespace GraduationProject.Controllers
     public class SubscriptionController : ControllerBase
     {
         private readonly AppDBContext _context;
-
-        public SubscriptionController(AppDBContext context)
+        private readonly IUnitOfWork _unitofwork;
+        public SubscriptionController(AppDBContext context,IUnitOfWork unitofwork)
         {
             _context = context; 
+            _unitofwork = unitofwork;
         }
 
         
@@ -208,6 +209,17 @@ namespace GraduationProject.Controllers
             });
         }
 
+
+        [HttpPost("countofallenrollement")]
+        [Authorize("AdminPolicy")]
+        public async Task<IActionResult> GetAllEnrollments()
+        {
+            return Ok(new {count = await _unitofwork.Subscribtion.Count()});
+        }
+
+
     }
+
+
 
 }

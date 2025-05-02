@@ -41,9 +41,9 @@ namespace GraduationProject.Controllers
         [Authorize("AdminPolicy")]
         public async Task<IActionResult> GetContacts(string sortingorder = "Descending",
             [FromQuery] int? page = 1,
-            [FromQuery] int? pageSize = 10)
+            [FromQuery] int? pageSize = 5)
         {
-            string[] includes = { "user" };  // Include the 'user' related entity
+            string[] includes = { "user" };  
 
             // Set up the order by expression specifically for 'date'
             Expression<Func<Contactus, object>> orderByExpression = x => x.date;

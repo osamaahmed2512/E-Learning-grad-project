@@ -3,27 +3,22 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace GraduationProject.models
 {
-    public class CustomModelStateFilter:IActionFilter
+    public class CustomModelStateFilter:ActionFilterAttribute
     {
-  
 
-        public void OnActionExecuting(ActionExecutingContext context)
+
+        public override void OnActionExecuting(ActionExecutingContext context)
         {
             if (!context.ModelState.IsValid)
             {
-                var allErrors = context.ModelState.Values
-                                               .SelectMany(v => v.Errors)
-                                               .Select(e => e.ErrorMessage)
-                                               .ToList();
+                var errors = context.ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
 
-                context.Result = new BadRequestObjectResult(new { message = allErrors.FirstOrDefault() ?? "Invalid data", status= StatusCodes.Status400BadRequest });
-
+                context.Result = new BadRequestObjectResult(new { error = errors.First() });
             }
-
-        }
-        public void OnActionExecuted(ActionExecutedContext context)
-        {
-           
+            base.OnActionExecuting(context);
         }
     }
 }

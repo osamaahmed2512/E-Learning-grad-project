@@ -8,6 +8,8 @@ using Stripe;
 using Stripe.Checkout;  
 using GraduationProject.models;
 using GraduationProject.consts;
+using Polly;
+using System.Threading.Tasks;
 namespace GraduationProject.Controllers
 {
     [Route("api/[controller]")]
@@ -17,15 +19,17 @@ namespace GraduationProject.Controllers
         private readonly IStripeService _stripeService;
         private readonly AppDBContext _context;
         private readonly IConfiguration _configuration;
-
+        private readonly IUnitOfWork _unitofwork;
         public PaymentController(
             IStripeService stripeService,
             AppDBContext context,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IUnitOfWork unitofwork)
         {
             _stripeService = stripeService;
             _context = context;
             _configuration = configuration;
+            _unitofwork = unitofwork;
         }
 
         [HttpPost("create-checkout-session")]
@@ -57,7 +61,7 @@ namespace GraduationProject.Controllers
                 {
                     SessionId = sessionId,
                     CheckoutUrl = session.Url // This will give you the complete Stripe hosted checkout URL
-                });   
+                });
             }
             catch (Exception ex)
             {
@@ -346,37 +350,55 @@ namespace GraduationProject.Controllers
             }
         }
 
-        //[HttpGet("export")]
-        //[Authorize(Policy = "AdminPolicy")]
-        //public async Task<IActionResult> ExportPayments()
-        //{
-        //    try
-        //    {
-        //        var payments = await _context.Subscriptions
-        //            .Include(s => s.Student)
-        //            .Include(s => s.Course)
-        //                .ThenInclude(c => c.Instructor)
-        //            .Select(s => new
-        //            {
-        //                StudentName = s.Student.Name,
-        //                Amount = s.MoneyPaid,
-        //                PlatformProfit = s.MoneyPaid * 0.2m,
-        //                EducatorProfit = s.MoneyPaid * 0.8m,
-        //                EducatorName = s.Course.Instructor.Name,
-        //                Date = s.SubscriptionDate,
-        //                Status = s.PaymentStatus
-        //            })
-        //            .ToListAsync();
+        [HttpGet("getTotalPAymet")]
+        [Authorize(Policy = "AdminPolicy")]
+        public async Task<IActionResult> getTotalPayment()
+        {
+            try
+            {
+                var UserIdCaim = User.FindFirst("Id");
+                if (UserIdCaim == null)
+                {
+                    return Unauthorized("User Id Is not found in the claim");
+                }
+                int userclaim = int.Parse(UserIdCaim.Value);
 
-        //        // Convert to CSV or Excel format
-        //        // Return file download
-        //        return File(/* your export logic here */);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return StatusCode(500, new { Message = "Error exporting payments", Error = ex.Message });
-        //    }
-        //}
+
+                var earning = await _unitofwork.Subscribtion.GEtAllasync();
+                decimal totalpayment = earning.Sum(s => s.MoneyPaid);
+                return Ok(new { TotalPayment = totalpayment });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while calculating earnings.");
+            }
+
+        }
+        [HttpGet("getTotalRevenue")]
+        [Authorize(Policy = "AdminPolicy")]
+        public async Task<IActionResult> getTotalRevennue()
+        {
+            try
+            {
+                var UserIdCaim = User.FindFirst("Id");
+                if (UserIdCaim == null)
+                {
+                    return Unauthorized("User Id Is not found in the claim");
+                }
+                int userclaim = int.Parse(UserIdCaim.Value);
+
+
+                var earning = await _unitofwork.Subscribtion.GEtAllasync();
+                decimal totalrevenue = earning.Sum(s => s.PlatformProfit);
+                return Ok(new { TotalRevenue = totalrevenue });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while calculating earnings.");
+            }
+
+
+        }
     }
-}
 
+}

@@ -1,4 +1,5 @@
 ﻿using GraduationProject.data;
+using GraduationProject.Dto;
 using GraduationProject.models;
 using GraduationProject.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -11,80 +12,119 @@ namespace GraduationProject.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize("StudentPolicy")]
     [Produces("application/json")]
     public class RecommendationsController : ControllerBase
     {
         private readonly RecommendationService _recommendationService;
         private readonly AppDBContext _context;
         private readonly ILogger<RecommendationsController> _logger;
-        public RecommendationsController(RecommendationService recommendationService, AppDBContext context, ILogger<RecommendationsController> logger)
-        {
-            _recommendationService = recommendationService ?? throw new ArgumentNullException(nameof(recommendationService));
-            _context = context ?? throw new ArgumentNullException(nameof(context));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        }
-       
-        
 
-        [HttpPost]
+        public RecommendationsController(
+            RecommendationService recommendationService,
+            AppDBContext context,
+            ILogger<RecommendationsController> logger)
+        {
+            _recommendationService = recommendationService;
+            _context = context;
+            _logger = logger;
+        }
+
+        [HttpGet]
+        [AllowAnonymous] // Allow both authenticated and unauthenticated users
+        [ProducesResponseType(typeof(ApiResponse<IEnumerable<RecommendationResult>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetRecommendations()
         {
             try
             {
-                var userIdClaim = User.FindFirst("Id")?.Value;
-                if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
-                {
-                    return Unauthorized(
-                        ApiResponse<object>.Error(
-                            ApiStatusCodes.Unauthorized,
-                            "Invalid token: User ID not found."
-                        )
-                    );
-                }
+                User? user = null;
 
-                var user = await _context.users
-                    .AsNoTracking()
-                    .Where(u => u.Id == userId)
-                    .Select(u => new User
+                // Check if user is authenticated
+                if (User.Identity?.IsAuthenticated == true)
+                {
+                    var userIdClaim = User.FindFirst("Id")?.Value;
+                    if (!string.IsNullOrEmpty(userIdClaim) && int.TryParse(userIdClaim, out var userId))
                     {
-                        Id = u.Id,
-                        PreferredCategory = u.PreferredCategory,
-                        SkillLevel = u.SkillLevel
-                    })
-                    .FirstOrDefaultAsync();
+                        // Get user with their preferences
+                        user = await _context.users
+                            .AsNoTracking()
+                            .FirstOrDefaultAsync(u => u.Id == userId);
 
-                if (user == null)
+                        if (user != null)
+                        {
+                            // Log user preferences
+                            _logger.LogInformation(
+                                "Fetching recommendations for authenticated user {UserId}. " +
+                                "Category: {Category}, Skill Level: {SkillLevel}",
+                                userId,
+                                user.PreferredCategory ?? "Not set",
+                                user.SkillLevel ?? "Not set"
+                            );
+
+                            // Check if preferences are set
+                            if (string.IsNullOrWhiteSpace(user.PreferredCategory) ||
+                                string.IsNullOrWhiteSpace(user.SkillLevel))
+                            {
+                                _logger.LogWarning(
+                                    "User {UserId} has incomplete preferences. Falling back to unregistered recommendations",
+                                    userId
+                                );
+                                // Make user null to fall back to unregistered recommendations
+                                user = null;
+                            }
+                        }
+                        else
+                        {
+                            _logger.LogWarning("User ID {UserId} not found in database", userId);
+                        }
+                    }
+                }
+                else
                 {
-                    return NotFound(
-                        ApiResponse<object>.Error(
-                            ApiStatusCodes.NotFound,
-                            "User not found."
-                        )
+                    _logger.LogInformation("Fetching recommendations for unauthenticated user");
+                }
+
+                // Get recommendations (will be random for unregistered users or users without preferences)
+                var response = await _recommendationService.GetRecommendationsAsync(user);
+
+                if (!response.Success)
+                {
+                    _logger.LogWarning(
+                        "Failed to get recommendations. Status: {Status}, Message: {Message}",
+                        response.StatusCode,
+                        response.Message
+                    );
+                }
+                else
+                {
+                    _logger.LogInformation(
+                        "Successfully retrieved {Count} recommendations for {UserType}",
+                        response.Data?.Count() ?? 0,
+                        user != null ? $"user {user.Id}" : "unregistered user"
                     );
                 }
 
-                const int topN = 10;
-                var recommendationResponse = await _recommendationService.GetRecommendationsAsync(user, topN);
-
-                return recommendationResponse.Success
-                    ? Ok(recommendationResponse)
-                    : StatusCode(
-                        (int)recommendationResponse.StatusCode,
-                        recommendationResponse
-                    );
+                return Ok(response);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error processing recommendation request: {Message}", ex.Message);
+                _logger.LogError(
+                    ex,
+                    "Error processing recommendation request for {UserType}",
+                    User.Identity?.IsAuthenticated == true ? "authenticated user" : "unauthenticated user"
+                );
+
                 return StatusCode(
-                    (int)ApiStatusCodes.InternalServerError,
+                    StatusCodes.Status500InternalServerError,
                     ApiResponse<object>.Error(
                         ApiStatusCodes.InternalServerError,
-                        "An error occurred while processing your request: " + ex.Message
+                        "An unexpected error occurred while processing your request"
                     )
                 );
             }
         }
+
+        
     }
 }

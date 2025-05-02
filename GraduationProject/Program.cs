@@ -81,10 +81,12 @@ namespace GraduationProject
             builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
             StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
             // Add services to the container.
-            builder.Services.AddControllers(options =>
-            {
-                options.Filters.Add<CustomModelStateFilter>();
-            })
+            builder.Services.AddControllers().
+                ConfigureApiBehaviorOptions(options =>
+                {
+                    options.SuppressModelStateInvalidFilter = true; 
+                }
+                )
                     .AddJsonOptions(options =>
                     {
                         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
@@ -151,7 +153,7 @@ namespace GraduationProject
              Xabe.FFmpeg.Downloader.FFmpegDownloader.GetLatestVersion(Xabe.FFmpeg.Downloader.FFmpegVersion.Official);
 
             builder.Services.AddScoped(typeof(IGenaricRepository<>), typeof(GenaricRepository<>));
-
+            builder.Services.AddScoped<CustomModelStateFilter>();
             builder.Services.AddScoped<IUnitOfWork,UnitOfWork>();
             builder.Services.AddMemoryCache();
             builder.Services.AddSingleton<EmailService>();

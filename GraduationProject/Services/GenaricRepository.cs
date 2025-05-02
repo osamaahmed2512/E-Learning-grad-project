@@ -46,14 +46,14 @@ namespace GraduationProject.Services
                     query = query.Include(include);
             }
 
-            // Sorting based on the criteria
+       
             if (sortingorder == "Descending")
             {
-                query = query.OrderByDescending(orderBy);  // Order by descending based on orderBy field
+                query = query.OrderByDescending(orderBy);  
             }
             else
             {
-                query = query.OrderBy(orderBy);  // Order by ascending based on orderBy field
+                query = query.OrderBy(orderBy);  
             }
             if (skip.HasValue)
             {
@@ -167,6 +167,8 @@ namespace GraduationProject.Services
             _Context.Entry(existingEntity).CurrentValues.SetValues(entity);
             return existingEntity;
         }
+
+
         public async Task<int> Count(Expression<Func<T,bool>>? predicate =null)
         {
             var query = _Context.Set<T>().AsQueryable();

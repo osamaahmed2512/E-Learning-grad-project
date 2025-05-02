@@ -15,11 +15,7 @@ namespace GraduationProject.Dto
 
         [JsonPropertyName("top_n")]
         public int TopN { get; set; }
-
-        [JsonPropertyName("request_id")]
-        public string RequestId { get; set; }
-
-        [JsonPropertyName("timestamp")]
-        public DateTime Timestamp { get; set; }
+        [JsonPropertyName("is_registered")]
+        public bool IsRegistered { get; set; }
     }
 }
