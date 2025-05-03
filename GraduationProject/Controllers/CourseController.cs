@@ -259,8 +259,11 @@ namespace GraduationProject.Controllers
                 return NotFound(new { message = "Course Not Found" });
             var userrole = User.Claims.FirstOrDefault(c => c.Type == "Role")?.Value;
             var userid = int.Parse(User.Claims.FirstOrDefault(c => c.Type == "Id")?.Value);
-
-            if (userrole != "teacher" && userrole != "admin")
+            if (userrole == "teacher" && course.Instructor_Id != userid)
+            {
+                return Unauthorized(new { Message = "You are not authorized to delete this course" });
+            }
+            else if (userrole != "teacher" && userrole != "admin")
             {
                 return Unauthorized(new { Message = "You are not authorized to delete this course" });
             }
@@ -326,15 +329,108 @@ namespace GraduationProject.Controllers
 
             return Ok(new { statuscode = StatusCodes.Status200OK, TotalEnrollments = totalEnrollments });
         }
+        [HttpPut]
+        [Route("UpdateCourse/{id}")]
+        [Authorize(Policy = "InstructorPolicy")]
+        [ServiceFilter(typeof(CustomModelStateFilter))]
+        public async Task<IActionResult> UpdateCourse(int id, [FromForm] CourseUpdateDto courseUpdateDto)
+        {
+            try
+            {
+                // Fetch the course by ID
+                var course = await _context.courses.Include(c => c.CourseTags).FirstOrDefaultAsync(c => c.Id == id);
+                if (course == null)
+                {
+                    return NotFound(new { Message = "Course not found" });
+                }
+
+                // Get the current user's ID and role from the token
+                var userId = int.Parse(User.FindFirst("Id")?.Value);
+                var userRole = User.FindFirst("Role")?.Value;
+
+                // Ensure the user is authorized to update the course
+                if (userRole == "teacher" && course.Instructor_Id != userId)
+                {
+                    return Unauthorized(new { Message = "You can only update your own courses" });
+                }
+
+                // Update course properties
+                course.Name = courseUpdateDto.Name;
+                course.CourseCategory = courseUpdateDto.CourseCategory.ToLower();
+                course.Describtion = courseUpdateDto.Describtion;
+                course.LevelOfCourse = courseUpdateDto.LevelOfCourse.ToLower();
+                course.Price = courseUpdateDto.Price;
+                course.Discount = courseUpdateDto.Discount ?? 0;
+
+                // Handle image upload if provided
+                if (courseUpdateDto.Image != null)
+                {
+                    // Delete the old image
+                    if (!string.IsNullOrEmpty(course.ImgUrl))
+                    {
+                        var oldImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", course.ImgUrl.TrimStart('/'));
+                        if (System.IO.File.Exists(oldImagePath))
+                        {
+                            System.IO.File.Delete(oldImagePath);
+                        }
+                    }
+
+                    // Save the new image
+                    var fileName = $"{Guid.NewGuid()}{Path.GetExtension(courseUpdateDto.Image.FileName)}";
+                    var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "courseImages");
+                    if (!Directory.Exists(uploadPath))
+                    {
+                        Directory.CreateDirectory(uploadPath);
+                    }
+                    var filePath = Path.Combine(uploadPath, fileName);
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await courseUpdateDto.Image.CopyToAsync(stream);
+                    }
+                    course.ImgUrl = $"/courseImages/{fileName}";
+                }
+
+                // Update tags if provided
+                if (courseUpdateDto.Tag != null && courseUpdateDto.Tag.Any())
+                {
+                    // Clear existing tags
+                    if (course.CourseTags != null && course.CourseTags.Any())
+                    {
+                        _context.CourseTags.RemoveRange(course.CourseTags);
+                    }
+
+                    // Add new tags
+                    foreach (var tagName in courseUpdateDto.Tag)
+                    {
+                        var tag = await _context.Tags.FirstOrDefaultAsync(t => t.Name == tagName);
+                        if (tag == null)
+                        {
+                            tag = new Tag { Name = tagName };
+                            _context.Tags.Add(tag);
+                        }
+
+                        course.CourseTags.Add(new CourseTag { Tag = tag });
+                    }
+                }
+
+                // Save changes to the database
+                await _context.SaveChangesAsync();
+
+                return Ok(new { Message = "Course updated successfully", CourseId = course.Id });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "An error occurred while updating the course", Error = ex.Message });
+            }
+        }
         [HttpGet]
         [Route("courseCount")]
         [Authorize(Policy = "AdminPolicy")]
-        public async Task<IActionResult> Getallusersonsytem(
-        [FromQuery] bool? IsActive)
+        public async Task<IActionResult> Getallcountofcourses()
         {
-            var courses = await _unitOfWork.Courses.Count();
+            var count = await _unitOfWork.Courses.Count();
 
-            return Ok(courses);
+            return Ok(new { count });
         }
 
 
@@ -470,29 +566,6 @@ namespace GraduationProject.Controllers
 
         }
 
-        //[HttpGet("getTotalPayment")]
-        //[Authorize(Policy = "TeacherPolicy")]
-        //public async Task<IActionResult> getEarning()
-        //{
-        //    try
-        //    {
-        //        var UserIdCaim = User.FindFirst("Id");
-        //        if (UserIdCaim == null)
-        //        {
-        //            return Unauthorized("User Id Is not found in the claim");
-        //        }
-        //        int userclaim = int.Parse(UserIdCaim.Value);
 
-
-        //        var earning = await _unitOfWork.Subscribtion.FindAllAsync(s => s.Course.Instructor_Id == userclaim, new[] { "Course" });
-        //        decimal totalEarnings = earning.Sum(s => s.InstructorProfit);
-        //        return Ok(new { ToTalEarning = totalEarnings });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return StatusCode(500, "An error occurred while calculating earnings.");
-        //    }
-
-        //}
     }
 }

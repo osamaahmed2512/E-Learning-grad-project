@@ -91,5 +91,14 @@ namespace GraduationProject.Controllers
                 return StatusCode(500, "An error occurred while processing your request.");
             }
         }
+        [HttpGet("count")]
+        [Authorize("AdminPolicy")]
+        public async Task<IActionResult> GetAllpayment()
+        {
+            var count = await _unitOfWork.Contactus.Count();
+            if (count == null)
+                return NotFound("no payment found");
+            return Ok(new {count});
+        }
     }
 }

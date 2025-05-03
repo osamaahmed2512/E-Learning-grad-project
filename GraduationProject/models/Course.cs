@@ -18,12 +18,12 @@ namespace GraduationProject.models
         public double Price { get; set; }
         public double Discount { get; set; } = 0;
         public double DiscountedPrice  => Price - (Price * Discount / 100);
-        public virtual List<CourseTag> CourseTags { get; set; }
-        public virtual User Instructor { get; set; }
+        public virtual List<CourseTag>? CourseTags { get; set; }
+        public virtual User? Instructor { get; set; }
 
         public double AverageRating { get; set; }
-        public List<Rating> Rating { get; set; }
-        public virtual List<Section> Sections { get; set; } = new List<Section>();
+        public List<Rating>? Rating { get; set; }
+        public virtual List<Section>? Sections { get; set; } = new List<Section>();
 
     }
 }

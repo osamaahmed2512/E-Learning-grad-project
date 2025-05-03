@@ -210,13 +210,23 @@ namespace GraduationProject.Controllers
         }
 
 
-        [HttpPost("countofallenrollement")]
+        [HttpGet("countofallenrollement")]
         [Authorize("AdminPolicy")]
         public async Task<IActionResult> GetAllEnrollments()
         {
             return Ok(new {count = await _unitofwork.Subscribtion.Count()});
         }
 
+
+        [HttpGet("getallpayment")]
+        [Authorize("AdminPolicy")]
+        public async Task<IActionResult> GetAllpayment()
+        {
+            var payment = await _unitofwork.Subscribtion.GEtAllasync();
+            if (payment == null) 
+                return NotFound("no payment found");
+            return Ok(payment);
+        }
 
     }
 

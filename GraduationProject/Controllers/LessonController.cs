@@ -4,6 +4,7 @@ using GraduationProject.data;
 using GraduationProject.models;
 using Microsoft.AspNetCore.Authorization;
 using GraduationProject.Dto;
+using static System.Collections.Specialized.BitVector32;
 
 
 namespace GraduationProject.Controllers
@@ -78,6 +79,11 @@ namespace GraduationProject.Controllers
             if (lesson == null)
             {
                 return NotFound(new { Message = "Lesson not found" });
+            }
+            var userId = int.Parse(User.FindFirst("Id")?.Value);
+            if (lesson.UserId != userId)
+            {
+                return Unauthorized(new { Message = "You can only update your own lesson" });
             }
 
             // Update fields only if new values are provided
@@ -162,8 +168,7 @@ namespace GraduationProject.Controllers
             return Ok(new { Message = "Lesson updated successfully" });
         }
 
-        // POST: api/Lesson
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+
         [HttpPost]
         [Authorize(Policy = "InstructorAndAdminPolicy")]
         public async Task<ActionResult<Lesson>> Addlesson([FromForm] LessonDto lessonDto)
@@ -210,7 +215,7 @@ namespace GraduationProject.Controllers
             {
                 lessonDurationHours = 0; // Default if unable to get duration
             }
-
+            var userId = int.Parse(User.FindFirst("Id")?.Value);
 
             var lesson = new Lesson
             {
@@ -220,7 +225,8 @@ namespace GraduationProject.Controllers
                 // Relative path for the saved file
                 SectionId = lessonDto.SectionId,
                 //LessonTags = new List<LessonTag>()
-                DurationInHours = lessonDurationHours
+                DurationInHours = lessonDurationHours,
+                UserId = userId,
             };
 
             //foreach (var tagName in lessonDto.Tags)

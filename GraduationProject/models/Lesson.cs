@@ -7,6 +7,7 @@
         public string? Description { get; set; }
         public string FileBath { get; set; }
         public int SectionId { get; set; }
+        public int UserId { get; set; }
         public double DurationInHours { get; set; }
         public virtual Section Section { get; set; }
 

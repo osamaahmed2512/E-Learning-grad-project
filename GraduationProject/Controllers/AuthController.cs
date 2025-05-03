@@ -123,6 +123,17 @@ namespace GraduationProject.Controllers
             if (user == null) return BadRequest("user not found");
             return Ok(user);
         }
+        [HttpGet]
+        [Route("GetUserdetails")]
+        [Authorize("InstuctandandadminandstudentPolicy")]
+        public IActionResult GetUserdetails()
+        {
+            var id = int.Parse(User.FindFirst("Id")?.Value);
+            if (id == 0) return BadRequest("invalid input data");
+            var user = _context.users.AsNoTracking().FirstOrDefault(x => x.Id == id);
+            if (user == null) return BadRequest("user not found");
+            return Ok(user);
+        }
 
         [HttpDelete("DeleteUser/{id}")]
         [Authorize(Policy = "AdminPolicy")]

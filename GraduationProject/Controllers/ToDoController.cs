@@ -20,7 +20,7 @@ namespace GraduationProject.Controllers
         }
 
         [HttpPost]
-        [Authorize("StudentPolicy")]
+        [Authorize("InstructorAndUserPolicy")]
         public async Task<IActionResult> CreateTask(ToDoDto task)
         {
 
