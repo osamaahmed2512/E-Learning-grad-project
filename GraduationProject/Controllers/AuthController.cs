@@ -280,7 +280,9 @@ namespace GraduationProject.Controllers
             return Ok(new {Statuscode=StatusCodes.Status200OK , Message = " updated successfully" });
 
         }
-            [HttpPost]
+            
+        
+        [HttpPost]
             [Route("Register")]
             public async Task<IActionResult> Register(RegisterDto registerDto)
             {

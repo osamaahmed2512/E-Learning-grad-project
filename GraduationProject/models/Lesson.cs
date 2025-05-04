@@ -9,6 +9,7 @@
         public int SectionId { get; set; }
         public int UserId { get; set; }
         public double DurationInHours { get; set; }
+        public bool IsPreview { get; set; } = false;
         public virtual Section Section { get; set; }
 
         //public List<LessonTag> LessonTags { get; set; }

@@ -85,6 +85,57 @@ namespace GraduationProject.Controllers
             return Ok(result);
         }
 
+        [HttpGet]
+        [Route("GetAllCoursesstudent")]
+
+        public async Task<IActionResult> GetAllCourseofsstudent()
+        {
+             var query = _context.courses
+               .Include(c => c.CourseTags).ThenInclude(ct => ct.Tag)
+               .Include(c => c.Instructor)
+               .Include(c => c.Sections).ThenInclude(s => s.Lessons)
+               .AsQueryable();
+
+            var data = await query.Select(c => new Allcoursedto
+            {
+                Id = c.Id,
+                Name = c.Name,
+                Describtion = c.Describtion,
+                CourseCategory = c.CourseCategory,
+                No_of_hours = c.No_of_hours,
+                Instructor_Id = c.Instructor_Id,
+                InstructorName = c.Instructor.Name,
+                No_of_students = c.no_of_students,
+                CreationDate = c.CreationDate,
+                LevelOfCourse = c.LevelOfCourse,
+                ImgUrl = c.ImgUrl,
+                AverageRating = c.AverageRating,
+                Price = c.Price,
+                Discount = c.Discount,
+                DiscountedPrice = c.DiscountedPrice,
+                Tags = c.CourseTags.Select(ct => new AllTagDto
+                {
+                    Id = ct.Tag.Id,
+                    Name = ct.Tag.Name
+                }).ToList(),
+                Sections = c.Sections.Select(s => new ALLSectionDto
+                {
+                    Id = s.Id,
+                    Name = s.Name,
+                    Lessons = s.Lessons.Select(l => new AllLessonDto
+                    {
+                        Id = l.Id,
+                        Name = l.Name,
+                        Description = l.Description,
+                        FileBath = l.FileBath,
+                        DurationInHours = l.DurationInHours
+                    }).ToList()
+                }).ToList()
+            }).ToListAsync();
+
+            return Ok(new { data });
+        }
+
         [HttpGet("GetInstructorCourses")]
         [Authorize(Policy = "InstructorPolicy")]
         public async Task<IActionResult> GetInstructorCourses()
@@ -433,10 +484,9 @@ namespace GraduationProject.Controllers
             return Ok(new { count });
         }
 
-
         [HttpGet]
         [Route("GetCourseById/{id}")]
-        
+        [Authorize("InstructorAndAdminPolicy")]
         public async Task<IActionResult> GetCourseById(int id)
         {
             // Retrieve the course by its ID with related data
@@ -488,6 +538,79 @@ namespace GraduationProject.Controllers
 
             return Ok(courseDto);
         }
+
+        [HttpGet]
+        [Route("GetCourseByIdForStudent/{id}")]
+
+        public async Task<IActionResult> GetCourseByIdForStudent(int id)
+        {
+
+            var studentIdClaim = User.FindFirst("id")?.Value;
+            int? studentId = null;
+            if (!string.IsNullOrEmpty(studentIdClaim))
+            {
+                studentId = int.Parse(studentIdClaim);
+            }
+
+            var course = await _context.courses
+                .Include(c => c.Instructor)
+                .Include(c => c.Sections)
+                    .ThenInclude(s => s.Lessons)
+                .Include(c => c.Rating)
+                .Include(c => c.CourseTags)
+                    .ThenInclude(ct => ct.Tag)
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (course == null)
+                return NotFound(new { Message = "Course not found" });
+
+            // Check if user is subscribed to this course
+            bool isSubscribed = false;
+            if (studentId.HasValue)
+            {
+                isSubscribed = await _context.Subscriptions
+                    .AnyAsync(s => s.StudentId == studentId && s.CourseId == id && s.Isactive);
+            }
+
+            var courseDto = new
+            {
+                course.Id,
+                course.Name,
+                course.Describtion,
+                course.CourseCategory,
+                course.No_of_hours,
+                course.Instructor_Id,
+                InstructorName = course.Instructor?.Name,
+                course.no_of_students,
+                course.CreationDate,
+                course.LevelOfCourse,
+                course.ImgUrl,
+                course.AverageRating,
+                course.Price,
+                course.Discount,
+                course.DiscountedPrice,
+                IsSubscribed = isSubscribed,
+                Tags = course.CourseTags?.Select(ct => new { ct.Tag.Name, ct.Tag.Id }).ToList(),
+                Sections = course.Sections?.Select(s => new
+                {
+                    s.Id,
+                    s.Name,
+                    Lessons = s.Lessons?.Select(l => new
+                    {
+                        l.Id,
+                        l.Name,
+                        l.Description,
+                        l.FileBath,
+                        l.DurationInHours,
+                        l.IsPreview,
+                        IsAccessible = isSubscribed || l.IsPreview // Only accessible if subscribed or preview
+                    }).ToList()
+                }).ToList()
+            };
+
+            return Ok(courseDto);
+        }
+
         [HttpPost]
         [Route("IncreaseCourseRating/{id}")]
         [Authorize("StudentPolicy")]

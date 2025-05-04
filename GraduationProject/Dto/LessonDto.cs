@@ -13,6 +13,8 @@ namespace GraduationProject.Dto
 
         [Required(ErrorMessage = "Please upload a video file.")]
         public IFormFile video { get; set; }
-
+        public bool IsPreview { get; set; }
     }
+
 }
+

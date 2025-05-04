@@ -4,7 +4,6 @@ using GraduationProject.data;
 using GraduationProject.models;
 using Microsoft.AspNetCore.Authorization;
 using GraduationProject.Dto;
-using static System.Collections.Specialized.BitVector32;
 
 
 namespace GraduationProject.Controllers
@@ -75,7 +74,8 @@ namespace GraduationProject.Controllers
         [Authorize(Policy = "InstructorAndAdminPolicy")]
         public async Task<IActionResult> UpdateLesson(int id, [FromForm] UpdateLesson lessonDto)
         {
-            var lesson = await _context.Lesson.FirstOrDefaultAsync(x => x.Id == id);
+            var lesson = await _context.Lesson.Include(l =>l.Section).
+                FirstOrDefaultAsync(x => x.Id == id);
             if (lesson == null)
             {
                 return NotFound(new { Message = "Lesson not found" });
@@ -102,7 +102,10 @@ namespace GraduationProject.Controllers
             {
                 lesson.SectionId = lessonDto.SectionId.Value;
             }
-
+            if (lessonDto.IsPreview.HasValue)
+            {
+                lesson.IsPreview = lessonDto.IsPreview.Value;
+            }
             // Update video if provided
             if (lessonDto.video != null && lessonDto.video.Length > 0)
             {
@@ -124,6 +127,20 @@ namespace GraduationProject.Controllers
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
                     await lessonDto.video.CopyToAsync(stream);
+                }
+                try
+                {
+                    using (var file = TagLib.File.Create(filePath))
+                    {
+                        lesson.DurationInHours = file.Properties.Duration.TotalHours;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log the error but don't fail the update
+                    Console.WriteLine($"Error calculating video duration: {ex.Message}");
+                    // Optionally set a default duration or keep the existing one
+                    lesson.DurationInHours = 0;
                 }
 
                 lesson.FileBath = $"/videos/{uniqueFileName}";
@@ -152,6 +169,10 @@ namespace GraduationProject.Controllers
             try
             {
                 await _context.SaveChangesAsync();
+                if (lesson.Section?.CourseId != null)
+                {
+                    await UpdateCourseHours(lesson.Section.CourseId);
+                }
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -227,6 +248,7 @@ namespace GraduationProject.Controllers
                 //LessonTags = new List<LessonTag>()
                 DurationInHours = lessonDurationHours,
                 UserId = userId,
+                IsPreview=lessonDto.IsPreview
             };
 
             //foreach (var tagName in lessonDto.Tags)
