@@ -82,17 +82,17 @@ namespace GraduationProject.data
                 .WithMany()
                 .HasForeignKey(s => s.CourseId)
                 .OnDelete(DeleteBehavior.NoAction);
-           modelBuilder.Entity<VideoProgress>()
-          .HasOne(vp => vp.Lesson)
-          .WithMany()
-          .HasForeignKey(vp => vp.LessonId)
-          .OnDelete(DeleteBehavior.NoAction);
+          // modelBuilder.Entity<VideoProgress>()
+          //.HasOne(vp => vp.Lesson)
+          //.WithMany()
+          //.HasForeignKey(vp => vp.LessonId)
+          //.OnDelete(DeleteBehavior.NoAction);
 
-            modelBuilder.Entity<VideoProgress>()
-          .HasOne(vp => vp.Student)
-          .WithMany()
-          .HasForeignKey(vp => vp.StudentId)
-          .OnDelete(DeleteBehavior.NoAction);
+          //  modelBuilder.Entity<VideoProgress>()
+          //.HasOne(vp => vp.Student)
+          //.WithMany()
+          //.HasForeignKey(vp => vp.StudentId)
+          //.OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<FlashCard>()
                 .HasOne(f => f.User)
@@ -150,7 +150,7 @@ namespace GraduationProject.data
         public DbSet<Rating> Rating { get; set; }
         public DbSet<Section> Sections { get; set; }
         public DbSet<Subscription> Subscriptions { get; set; }
-        public DbSet<VideoProgress> VideoProgress { get; set; }
+        //public DbSet<VideoProgress> VideoProgress { get; set; }
         public DbSet<FlashCard> Flashcards { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<Category> category { get; set; }

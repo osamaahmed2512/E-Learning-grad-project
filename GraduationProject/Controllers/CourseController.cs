@@ -513,7 +513,8 @@ namespace GraduationProject.Controllers
             var course = await _context.courses
                 .Include(c => c.Instructor)
                 .Include(c => c.Sections)
-                .ThenInclude(s => s.Lessons) // Include lessons within sections
+                .ThenInclude(s => s.Lessons)
+                
                 .Include(c => c.Rating)
                 .Include(c => c.CourseTags)
                 .ThenInclude(ct => ct.Tag)

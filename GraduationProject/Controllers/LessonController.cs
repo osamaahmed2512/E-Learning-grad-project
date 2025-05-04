@@ -280,35 +280,37 @@ namespace GraduationProject.Controllers
                 //Tags = lesson.LessonTags.Select(lt => lt.Tag.Name)
             });
         }
-        private async Task<bool> CheckCourseCompletion(int courseId, int userId)
-        {
-            // Get all lessons in the course
-            var lessonsInCourse = await _context.Lesson
-                .Include(l => l.Section)
-                .Where(l => l.Section.CourseId == courseId)
-                .ToListAsync();
+      
+        //private async Task<bool> CheckCourseCompletion(int courseId, int userId)
+        //{
+        //    // Get all lessons in the course
+        //    var lessonsInCourse = await _context.Lesson
+        //        .Include(l => l.Section)
+        //        .Where(l => l.Section.CourseId == courseId)
+        //        .ToListAsync();
 
-            if (!lessonsInCourse.Any())
-                return false;
+        //    if (!lessonsInCourse.Any())
+        //        return false;
 
-            var totalCourseDuration = lessonsInCourse.Sum(l => l.DurationInHours);
+        //    var totalCourseDuration = lessonsInCourse.Sum(l => l.DurationInHours);
 
-            // Get user's watched time
-            var rating = await _context.Rating
-                .FirstOrDefaultAsync(r => r.CourseId == courseId && r.StudentId == userId);
+        //    // Get user's watched time
+        //    var rating = await _context.Rating
+        //        .FirstOrDefaultAsync(r => r.CourseId == courseId && r.StudentId == userId);
 
-            if (rating == null)
-                return false;
+        //    if (rating == null)
+        //        return false;
 
-            // Calculate completion percentage
-            var completionPercentage = rating.TimeSpentHours / totalCourseDuration;
+        //    // Calculate completion percentage
+        //    var completionPercentage = rating.TimeSpentHours / totalCourseDuration;
 
-            // Return true if user has watched at least 80% of total course duration
-            return completionPercentage >= COMPLETION_THRESHOLD;
-        }
+        //    // Return true if user has watched at least 80% of total course duration
+        //    return completionPercentage >= COMPLETION_THRESHOLD;
+        //}
 
 
         // DELETE: api/Lesson/5
+        
         [HttpDelete("{id}")]
         [Authorize(Policy = "InstructorAndAdminPolicy")]
         public async Task<IActionResult> DeleteLesson(int id)
@@ -325,214 +327,216 @@ namespace GraduationProject.Controllers
 
             return Ok(new {Message = "Lesson deleted succesfully"});
         }
-        [HttpPost("track-progress")]
-        [Authorize]
-        public async Task<IActionResult> TrackProgress([FromBody] VideoProgressUpdateDto progressDto)
-        {
-            try
-            {
-                var userIdClaim = User.FindFirst("Id");
-                if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
-                {
-                    return Unauthorized(new { Message = "User not authenticated" });
-                }
+     
+        //[HttpPost("track-progress")]
+        //[Authorize]
+        //public async Task<IActionResult> TrackProgress([FromBody] VideoProgressUpdateDto progressDto)
+        //{
+        //    try
+        //    {
+        //        var userIdClaim = User.FindFirst("Id");
+        //        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+        //        {
+        //            return Unauthorized(new { Message = "User not authenticated" });
+        //        }
 
-                var lesson = await _context.Lesson
-                    .Include(l => l.Section)
-                    .FirstOrDefaultAsync(l => l.Id == progressDto.LessonId);
+        //        var lesson = await _context.Lesson
+        //            .Include(l => l.Section)
+        //            .FirstOrDefaultAsync(l => l.Id == progressDto.LessonId);
 
-                if (lesson == null)
-                {
-                    return NotFound(new { Message = "Lesson not found" });
-                }
+        //        if (lesson == null)
+        //        {
+        //            return NotFound(new { Message = "Lesson not found" });
+        //        }
 
-                // Convert seconds to hours
-                float watchedHours = progressDto.CurrentTime / 3600f;
-                float totalHours = progressDto.TotalDuration / 3600f;
+        //        // Convert seconds to hours
+        //        float watchedHours = progressDto.CurrentTime / 3600f;
+        //        float totalHours = progressDto.TotalDuration / 3600f;
 
-                // Get or create video progress
-                var progress = await _context.VideoProgress
-                    .FirstOrDefaultAsync(vp => vp.LessonId == progressDto.LessonId &&
-                                             vp.StudentId == userId);
+        //        // Get or create video progress
+        //        var progress = await _context.VideoProgress
+        //            .FirstOrDefaultAsync(vp => vp.LessonId == progressDto.LessonId &&
+        //                                     vp.StudentId == userId);
 
-                if (progress == null)
-                {
-                    progress = new VideoProgress
-                    {
-                        StudentId = userId,
-                        LessonId = progressDto.LessonId,
-                        WatchedDuration = watchedHours,
-                        TotalDuration = totalHours,
-                        IsCompleted = progressDto.IsCompleted,
-                        LastWatched = DateTime.UtcNow
-                    };
-                    _context.VideoProgress.Add(progress);
-                }
-                else
-                {
-                    progress.WatchedDuration = Math.Max(progress.WatchedDuration, watchedHours);
-                    progress.IsCompleted = progressDto.IsCompleted;
-                    progress.LastWatched = DateTime.UtcNow;
-                }
+        //        if (progress == null)
+        //        {
+        //            progress = new VideoProgress
+        //            {
+        //                StudentId = userId,
+        //                LessonId = progressDto.LessonId,
+        //                WatchedDuration = watchedHours,
+        //                TotalDuration = totalHours,
+        //                IsCompleted = progressDto.IsCompleted,
+        //                LastWatched = DateTime.UtcNow
+        //            };
+        //            _context.VideoProgress.Add(progress);
+        //        }
+        //        else
+        //        {
+        //            progress.WatchedDuration = Math.Max(progress.WatchedDuration, watchedHours);
+        //            progress.IsCompleted = progressDto.IsCompleted;
+        //            progress.LastWatched = DateTime.UtcNow;
+        //        }
 
-                // Update Rating table for course-level progress
-                var rating = await _context.Rating
-                    .FirstOrDefaultAsync(r => r.StudentId == userId &&
-                                            r.CourseId == lesson.Section.CourseId);
+        //        // Update Rating table for course-level progress
+        //        var rating = await _context.Rating
+        //            .FirstOrDefaultAsync(r => r.StudentId == userId &&
+        //                                    r.CourseId == lesson.Section.CourseId);
 
-                if (rating == null)
-                {
-                    rating = new Rating
-                    {
-                        StudentId = userId,
-                        CourseId = lesson.Section.CourseId,
-                        TimeSpentHours = watchedHours,
-                        ClickCount = 1,
-                        CompletionStatus = "No",
-                        RatingDate = DateTime.UtcNow
-                    };
-                    _context.Rating.Add(rating);
-                }
-                else
-                {
-                    rating.TimeSpentHours = Math.Max(rating.TimeSpentHours, watchedHours);
-                    rating.ClickCount++;
-                }
+        //        if (rating == null)
+        //        {
+        //            rating = new Rating
+        //            {
+        //                StudentId = userId,
+        //                CourseId = lesson.Section.CourseId,
+        //                TimeSpentHours = watchedHours,
+        //                ClickCount = 1,
+        //                CompletionStatus = "No",
+        //                RatingDate = DateTime.UtcNow
+        //            };
+        //            _context.Rating.Add(rating);
+        //        }
+        //        else
+        //        {
+        //            rating.TimeSpentHours = Math.Max(rating.TimeSpentHours, watchedHours);
+        //            rating.ClickCount++;
+        //        }
 
-                await _context.SaveChangesAsync();
+        //        await _context.SaveChangesAsync();
 
-                // Calculate completion percentage
-                float completionPercentage = (watchedHours / totalHours) * 100;
-                bool isVideoCompleted = completionPercentage >= 90; // Consider 90% watched as completed
+        //        // Calculate completion percentage
+        //        float completionPercentage = (watchedHours / totalHours) * 100;
+        //        bool isVideoCompleted = completionPercentage >= 90; // Consider 90% watched as completed
 
-                return Ok(new
-                {
-                    Message = "Progress tracked successfully",
-                    WatchedDuration = watchedHours,
-                    TotalDuration = totalHours,
-                    CompletionPercentage = completionPercentage,
-                    IsCompleted = isVideoCompleted
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = "Error tracking progress", Error = ex.Message });
-            }
-        }
+        //        return Ok(new
+        //        {
+        //            Message = "Progress tracked successfully",
+        //            WatchedDuration = watchedHours,
+        //            TotalDuration = totalHours,
+        //            CompletionPercentage = completionPercentage,
+        //            IsCompleted = isVideoCompleted
+        //        });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, new { Message = "Error tracking progress", Error = ex.Message });
+        //    }
+        //}
 
-        [HttpGet("course-progress/{courseId}")]
-        public async Task<IActionResult> GetDetailedCourseProgress(int courseId)
-        {
-            try
-            {
-                var userIdClaim = User.FindFirst("Id");
-                if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
-                {
-                    return Unauthorized(new { Message = "User not authenticated" });
-                }
+        //[HttpGet("course-progress/{courseId}")]
+        //public async Task<IActionResult> GetDetailedCourseProgress(int courseId)
+        //{
+        //    try
+        //    {
+        //        var userIdClaim = User.FindFirst("Id");
+        //        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+        //        {
+        //            return Unauthorized(new { Message = "User not authenticated" });
+        //        }
 
-                // Get all lessons in the course
-                var courseLessons = await _context.Lesson
-                    .Include(l => l.Section)
-                    .Where(l => l.Section.CourseId == courseId)
-                    .ToListAsync();
+        //        // Get all lessons in the course
+        //        var courseLessons = await _context.Lesson
+        //            .Include(l => l.Section)
+        //            .Where(l => l.Section.CourseId == courseId)
+        //            .ToListAsync();
 
-                var totalCourseDuration = courseLessons.Sum(l => l.DurationInHours);
+        //        var totalCourseDuration = courseLessons.Sum(l => l.DurationInHours);
 
-                // Get user's progress
-                var rating = await _context.Rating
-                    .FirstOrDefaultAsync(r => r.CourseId == courseId && r.StudentId == userId);
+        //        // Get user's progress
+        //        var rating = await _context.Rating
+        //            .FirstOrDefaultAsync(r => r.CourseId == courseId && r.StudentId == userId);
 
-                if (rating == null)
-                {
-                    return Ok(new
-                    {
-                        TimeSpentHours = 0.0,
-                        CompletionStatus = "No",
-                        CompletionPercentage = 0.0,
-                        TotalCourseDuration = totalCourseDuration,
-                        IsCompleted = false
-                    });
-                }
+        //        if (rating == null)
+        //        {
+        //            return Ok(new
+        //            {
+        //                TimeSpentHours = 0.0,
+        //                CompletionStatus = "No",
+        //                CompletionPercentage = 0.0,
+        //                TotalCourseDuration = totalCourseDuration,
+        //                IsCompleted = false
+        //            });
+        //        }
 
-                // Handle division by zero and invalid values
-                double completionPercentage = 0.0;
-                if (totalCourseDuration > 0)
-                {
-                    completionPercentage = Math.Min((rating.TimeSpentHours / totalCourseDuration) * 100, 100);
-                }
+        //        // Handle division by zero and invalid values
+        //        double completionPercentage = 0.0;
+        //        if (totalCourseDuration > 0)
+        //        {
+        //            completionPercentage = Math.Min((rating.TimeSpentHours / totalCourseDuration) * 100, 100);
+        //        }
 
-                return Ok(new
-                {
-                    TimeSpentHours = double.IsInfinity(rating.TimeSpentHours) ? 0.0 : rating.TimeSpentHours,
-                    CompletionStatus = rating.CompletionStatus,
-                    CompletionPercentage = double.IsInfinity(completionPercentage) ? 0.0 : completionPercentage,
-                    TotalCourseDuration = double.IsInfinity(totalCourseDuration) ? 0.0 : totalCourseDuration,
-                    IsCompleted = completionPercentage >= COMPLETION_THRESHOLD * 100
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = "Error retrieving course progress", Error = ex.Message });
-            }
-        }
+        //        return Ok(new
+        //        {
+        //            TimeSpentHours = double.IsInfinity(rating.TimeSpentHours) ? 0.0 : rating.TimeSpentHours,
+        //            CompletionStatus = rating.CompletionStatus,
+        //            CompletionPercentage = double.IsInfinity(completionPercentage) ? 0.0 : completionPercentage,
+        //            TotalCourseDuration = double.IsInfinity(totalCourseDuration) ? 0.0 : totalCourseDuration,
+        //            IsCompleted = completionPercentage >= COMPLETION_THRESHOLD * 100
+        //        });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, new { Message = "Error retrieving course progress", Error = ex.Message });
+        //    }
+        //}
 
-        [HttpGet("statistics/{lessonId}")]
-        [Authorize]
-        public async Task<IActionResult> GetLessonStatistics(int lessonId)
-        {
-            var lesson = await _context.Lesson
-                .Include(l => l.Section)
-                .FirstOrDefaultAsync(l => l.Id == lessonId);
+        //[HttpGet("statistics/{lessonId}")]
+        //[Authorize]
+        //public async Task<IActionResult> GetLessonStatistics(int lessonId)
+        //{
+        //    var lesson = await _context.Lesson
+        //        .Include(l => l.Section)
+        //        .FirstOrDefaultAsync(l => l.Id == lessonId);
 
-            if (lesson == null)
-            {
-                return NotFound(new { Message = "Lesson not found" });
-            }
+        //    if (lesson == null)
+        //    {
+        //        return NotFound(new { Message = "Lesson not found" });
+        //    }
 
-            var progress = await _context.VideoProgress
-                .Where(vp => vp.LessonId == lessonId)
-                .ToListAsync();
+        //    var progress = await _context.VideoProgress
+        //        .Where(vp => vp.LessonId == lessonId)
+        //        .ToListAsync();
 
-            var stats = new
-            {
-                TotalStudents = progress.Count,
-                CompletedCount = progress.Count(p => p.IsCompleted),
-                AverageWatchedDuration = progress.Any() ? progress.Average(p => p.WatchedDuration) : 0,
-                CompletionRate = progress.Any() ? (double)progress.Count(p => p.IsCompleted) / progress.Count * 100 : 0
-            };
+        //    var stats = new
+        //    {
+        //        TotalStudents = progress.Count,
+        //        CompletedCount = progress.Count(p => p.IsCompleted),
+        //        AverageWatchedDuration = progress.Any() ? progress.Average(p => p.WatchedDuration) : 0,
+        //        CompletionRate = progress.Any() ? (double)progress.Count(p => p.IsCompleted) / progress.Count * 100 : 0
+        //    };
 
-            return Ok(stats);
-        }
+        //    return Ok(stats);
+        //}
         private bool LessonExists(int id)
         {
             return _context.Lesson.Any(e => e.Id == id);
         }
 
-        private async Task SynchronizeVideoProgress(int userId, int courseId)
-        {
-            var allProgress = await _context.VideoProgress
-                .Include(vp => vp.Lesson)
-                .ThenInclude(l => l.Section)
-                .Where(vp => vp.Lesson.Section.CourseId == courseId && vp.StudentId == userId)
-                .ToListAsync();
+        //private async Task SynchronizeVideoProgress(int userId, int courseId)
+        //{
+        //    var allProgress = await _context.VideoProgress
+        //        .Include(vp => vp.Lesson)
+        //        .ThenInclude(l => l.Section)
+        //        .Where(vp => vp.Lesson.Section.CourseId == courseId && vp.StudentId == userId)
+        //        .ToListAsync();
 
-            var rating = await _context.Rating
-                .FirstOrDefaultAsync(r => r.CourseId == courseId && r.StudentId == userId);
+        //    var rating = await _context.Rating
+        //        .FirstOrDefaultAsync(r => r.CourseId == courseId && r.StudentId == userId);
 
-            if (rating != null)
-            {
-                // Sum up all watched durations
-                double totalWatchedHours = allProgress.Sum(vp => vp.WatchedDuration);
+        //    if (rating != null)
+        //    {
+        //        // Sum up all watched durations
+        //        double totalWatchedHours = allProgress.Sum(vp => vp.WatchedDuration);
 
-                // Update the rating if there's a discrepancy
-                if (Math.Abs(rating.TimeSpentHours - totalWatchedHours) > 0.01) // Small threshold for float comparison
-                {
-                    rating.TimeSpentHours = totalWatchedHours;
-                    await _context.SaveChangesAsync();
-                }
-            }
-        }
+        //        // Update the rating if there's a discrepancy
+        //        if (Math.Abs(rating.TimeSpentHours - totalWatchedHours) > 0.01) // Small threshold for float comparison
+        //        {
+        //            rating.TimeSpentHours = totalWatchedHours;
+        //            await _context.SaveChangesAsync();
+        //        }
+        //    }
+        //}
+
 
         private async Task UpdateCourseHours(int courseId)
         {
@@ -553,5 +557,7 @@ namespace GraduationProject.Controllers
                 await _context.SaveChangesAsync();
             }
         }
+    
     }
+
 }
