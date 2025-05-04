@@ -294,71 +294,91 @@ namespace GraduationProject.Controllers
 
             return Ok(new { id = course.Id, Message = "Course added successfully", statuscode = StatusCodes.Status200OK });
         }
+
         [HttpDelete]
         [Route("DeleteCourseById/{id}")]
         [Authorize(Policy = "InstructorAndAdminPolicy")]
         public async Task<IActionResult> DeleteCourseById(int id)
         {
-            if (!int.TryParse(id.ToString(), out var parsedId))
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                return BadRequest("Invalid ID format. Please provide a valid integer.");
-            }
-            var course = await _context.courses.Include(c => c.Sections).ThenInclude(x => x.Lessons)
-                .Include(c => c.CourseTags).FirstOrDefaultAsync(c => c.Id == id);
-
-            if (course == null)
-                return NotFound(new { message = "Course Not Found" });
-            var userrole = User.Claims.FirstOrDefault(c => c.Type == "Role")?.Value;
-            var userid = int.Parse(User.Claims.FirstOrDefault(c => c.Type == "Id")?.Value);
-            if (userrole == "teacher" && course.Instructor_Id != userid)
-            {
-                return Unauthorized(new { Message = "You are not authorized to delete this course" });
-            }
-            else if (userrole != "teacher" && userrole != "admin")
-            {
-                return Unauthorized(new { Message = "You are not authorized to delete this course" });
-            }
-
-            //// Delete all LessonTags associated with Lessons in this Course
-            //var lessonTags = course.Lessons.SelectMany(l => l.LessonTags).ToList();
-            //if (lessonTags.Any())
-            //{
-            //    _context.LessonTag.RemoveRange(lessonTags);
-            //}
-            //delete all lessons within each section
-            foreach (var section in course.Sections)
-            {
-                if (section.Lessons.Any())
+                if (!int.TryParse(id.ToString(), out var parsedId))
                 {
-                    _context.Lesson.RemoveRange(section.Lessons);
+                    return BadRequest("Invalid ID format. Please provide a valid integer.");
                 }
-            }
-            // Delete all Lessons associated with this Course
-            if (course.Sections.Any())
-            {
-                _context.Sections.RemoveRange(course.Sections);
-            }
 
-            // Delete the associated tags if any (optional, depends on cascading rules)
-            if (course.CourseTags != null && course.CourseTags.Any())
-            {
-                _context.CourseTags.RemoveRange(course.CourseTags);
-            }
-            // Delete the associated image from the server
-            if (!string.IsNullOrEmpty(course.ImgUrl))
-            {
-                var imagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", course.ImgUrl.TrimStart('/'));
-                if (System.IO.File.Exists(imagePath))
+                var course = await _context.courses
+                    .Include(c => c.Sections)
+                        .ThenInclude(x => x.Lessons)
+                    .Include(c => c.CourseTags)
+                    .Include(c => c.Subscriptions)
+                    .FirstOrDefaultAsync(c => c.Id == id);
+
+                if (course == null)
+                    return NotFound(new { message = "Course Not Found" });
+
+                // Authorization check
+                var userrole = User.Claims.FirstOrDefault(c => c.Type == "Role")?.Value;
+                var userid = int.Parse(User.Claims.FirstOrDefault(c => c.Type == "Id")?.Value);
+                if (userrole == "teacher" && course.Instructor_Id != userid)
                 {
-                    System.IO.File.Delete(imagePath);
+                    return Unauthorized(new { Message = "You are not authorized to delete this course" });
                 }
+                else if (userrole != "teacher" && userrole != "admin")
+                {
+                    return Unauthorized(new { Message = "You are not authorized to delete this course" });
+                }
+
+                // Delete related entities in the correct order
+                if (course.Subscriptions?.Any() == true)
+                {
+                    _context.Subscriptions.RemoveRange(course.Subscriptions);
+                }
+
+                foreach (var section in course.Sections ?? Enumerable.Empty<Section>())
+                {
+                    if (section.Lessons?.Any() == true)
+                    {
+                        _context.Lesson.RemoveRange(section.Lessons);
+                    }
+                }
+
+                if (course.Sections?.Any() == true)
+                {
+                    _context.Sections.RemoveRange(course.Sections);
+                }
+
+                if (course.CourseTags?.Any() == true)
+                {
+                    _context.CourseTags.RemoveRange(course.CourseTags);
+                }
+
+                // Delete the course image
+                if (!string.IsNullOrEmpty(course.ImgUrl))
+                {
+                    var imagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", course.ImgUrl.TrimStart('/'));
+                    if (System.IO.File.Exists(imagePath))
+                    {
+                        System.IO.File.Delete(imagePath);
+                    }
+                }
+
+                // Remove the course
+                _context.courses.Remove(course);
+                await _context.SaveChangesAsync();
+
+                // Commit transaction
+                await transaction.CommitAsync();
+
+                return Ok(new { Message = "Course deleted successfully" });
             }
-            // Remove the course from the database
-            _context.courses.Remove(course);
-            await _context.SaveChangesAsync();
-
-            return Ok(new { Message = "Course deleted successfully" });
-
+            catch (Exception ex)
+            {
+                // Rollback transaction
+                await transaction.RollbackAsync();
+                return StatusCode(500, new { Message = "An error occurred while deleting the course", Error = ex.Message });
+            }
         }
         [HttpGet]
         [Route("GetTotalEnrollments")]

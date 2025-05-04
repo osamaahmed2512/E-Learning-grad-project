@@ -23,6 +23,7 @@ namespace GraduationProject.models
 
         public double AverageRating { get; set; }
         public List<Rating>? Rating { get; set; }
+        public virtual List<Subscription>? Subscriptions { get; set; }
         public virtual List<Section>? Sections { get; set; } = new List<Section>();
 
     }

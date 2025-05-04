@@ -102,16 +102,36 @@ namespace GraduationProject.data
             modelBuilder.Entity<Subscription>()
                 .Property(s => s.MoneyPaid)
                 .HasPrecision(18, 2);
-            modelBuilder.Entity<Subscription>(entity =>
+            modelBuilder.Entity<Subscription>(builder =>
             {
-                entity.Property(e => e.MoneyPaid)
-                    .HasColumnType("decimal(18,2)"); 
+                builder.HasOne(s => s.Course)
+                    .WithMany(c => c.Subscriptions)
+                    .HasForeignKey(s => s.CourseId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
 
-                entity.Property(e => e.PlatformProfit)
-                    .HasColumnType("decimal(18,2)"); 
+                builder.HasOne(s => s.Student)
+                    .WithMany()
+                    .HasForeignKey(s => s.StudentId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
 
-                entity.Property(e => e.InstructorProfit)
-                    .HasColumnType("decimal(18,2)");  
+                builder.Property(s => s.MoneyPaid)
+                    .HasColumnType("decimal(18,2)");
+                builder.Property(s => s.PlatformProfit)
+                    .HasColumnType("decimal(18,2)");
+                builder.Property(s => s.InstructorProfit)
+                    .HasColumnType("decimal(18,2)");
+            });
+            modelBuilder.Entity<Course>(builder =>
+            {
+                builder.HasOne(c => c.Instructor)
+                    .WithMany(u => u.Courses)
+                    .HasForeignKey(c => c.Instructor_Id)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+
+                builder.HasMany(c => c.Subscriptions)
+                    .WithOne(s => s.Course)
+                    .HasForeignKey(s => s.CourseId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             base.OnModelCreating(modelBuilder);
