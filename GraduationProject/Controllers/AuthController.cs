@@ -113,7 +113,7 @@ namespace GraduationProject.Controllers
 
 
 
-
+//dkmdmkdmdkdl
         [HttpGet]
         [Route("GetUserById/{id}")]
         public IActionResult GetUserById(int id)
@@ -282,7 +282,7 @@ namespace GraduationProject.Controllers
         }
             
         
-        [HttpPost]
+            [HttpPost]
             [Route("Register")]
             public async Task<IActionResult> Register(RegisterDto registerDto)
             {
