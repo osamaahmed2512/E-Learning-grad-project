@@ -282,6 +282,9 @@ namespace GraduationProject.Controllers
         }
             
         
+
+
+
             [HttpPost]
             [Route("Register")]
             public async Task<IActionResult> Register(RegisterDto registerDto)
@@ -397,7 +400,47 @@ namespace GraduationProject.Controllers
             return Ok(new { Message = "User created successfully", newUser.Id });
         }
 
+        [HttpDelete("DeleteUserImage")]
+        [Authorize("InstuctandandadminandstudentPolicy")]
+        public IActionResult DeleteUserImage()
+        {
+            try
+            {
+                // Get the current user's ID from the token
+                var userId = int.Parse(User.FindFirst("Id")?.Value);
 
+                // Find the user
+                var user = _context.users.FirstOrDefault(u => u.Id == userId);
+                if (user == null)
+                {
+                    return NotFound(new { statuscode = StatusCodes.Status404NotFound, Message = "User not found" });
+                }
+
+                // Check if user has an image
+                if (string.IsNullOrWhiteSpace(user.ImageUrl))
+                {
+                    return BadRequest(new { statuscode = StatusCodes.Status400BadRequest, Message = "No image to delete" });
+                }
+
+                // Delete the physical file
+                var imagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", user.ImageUrl.TrimStart('/'));
+                if (System.IO.File.Exists(imagePath))
+                {
+                    System.IO.File.Delete(imagePath);
+                }
+
+                // Update user record
+                user.ImageUrl = null;
+                _context.SaveChanges();
+
+                return Ok(new { statuscode = StatusCodes.Status200OK, Message = "Profile image deleted successfully" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { statuscode = StatusCodes.Status500InternalServerError, Message = "An error occurred while deleting the image" });
+            }
+        }
 
 
         [HttpPost]
