@@ -71,3 +71,15 @@ dist-ssr
 *.sln
 *.sw?
 >>>>>>> 85d25308d30cb5e1c4bd8819e93e95c9570f545a
+
+# Ignore uploaded files inside wwwroot
+GraduationProject/wwwroot/courseImages/*
+GraduationProject/wwwroot/CVs/*
+GraduationProject/wwwroot/Images/*
+GraduationProject/wwwroot/videos/*
+
+# Keep the empty folders
+!GraduationProject/wwwroot/courseImages/.gitkeep
+!GraduationProject/wwwroot/CVs/.gitkeep
+!GraduationProject/wwwroot/Images/.gitkeep
+!GraduationProject/wwwroot/videos/.gitkeep
