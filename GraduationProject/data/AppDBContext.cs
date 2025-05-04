@@ -123,7 +123,7 @@ namespace GraduationProject.data
         public DbSet<CourseTag> CourseTags { get; set; }
         public DbSet<Lesson> Lesson { get; set; }
         //public DbSet<LessonTag> LessonTag { get; set; }
-
+        public DbSet<PomodoroSession> PomodoroSessions { get; set; }
         public DbSet<Question> Questions { get; set; }
         public DbSet<Answer> Answers { get; set; }
 
