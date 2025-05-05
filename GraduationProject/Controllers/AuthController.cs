@@ -134,7 +134,7 @@ namespace GraduationProject.Controllers
             if (user == null) return BadRequest("user not found");
             return Ok(user);
         }
-
+        // osama ahmed 
         [HttpDelete("DeleteUser/{id}")]
         [Authorize(Policy = "AdminPolicy")]
         public IActionResult DeleteUser(int id)
