@@ -134,8 +134,21 @@ namespace GraduationProject.data
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
+            modelBuilder.Entity<TimerSettings>()
+                .HasOne(ts => ts.User)
+                .WithMany()
+                .HasForeignKey(ts => ts.UserId);
+
+            modelBuilder.Entity<TimerState>()
+                .HasOne(ts => ts.User)
+                .WithMany()
+                .HasForeignKey(ts => ts.UserId);
+
             base.OnModelCreating(modelBuilder);
         }
+
+        public DbSet<TimerSettings> TimerSettings { get; set; }
+        public DbSet<TimerState> TimerStates { get; set; }
 
         public DbSet<User> users { get; set; }
         public DbSet<Course> courses { get; set; }
@@ -143,7 +156,6 @@ namespace GraduationProject.data
         public DbSet<CourseTag> CourseTags { get; set; }
         public DbSet<Lesson> Lesson { get; set; }
         //public DbSet<LessonTag> LessonTag { get; set; }
-        public DbSet<PomodoroSession> PomodoroSessions { get; set; }
         public DbSet<Question> Questions { get; set; }
         public DbSet<Answer> Answers { get; set; }
 
