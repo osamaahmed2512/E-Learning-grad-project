@@ -178,13 +178,34 @@ namespace GraduationProject.Controllers
        (string.IsNullOrEmpty(role) || u.Role == role)&&
        (!isApproved.HasValue || u.IsApproved == isApproved.Value);
 
-            var users =  _unitofwork.Users.FindAll(
+            var users = _unitofwork.Users.FindAll(
                 criteria: criteria,
+                 includes: new[] { "CreatedBy" },
                 orderBy: u => EF.Property<object>(u, orderBy),
                 orderByDirection: orderDir,
                 skip: (page - 1) * pageSize,
                 take: pageSize
-            );
+            ).Select(u => new
+            {
+                u.Id,
+                u.Name,
+                u.Email,
+                u.Role,
+                u.ImageUrl,
+                u.BIO,
+                u.Introduction,
+                u.CVUrl,
+                u.PreferredCategory,
+                u.Username,
+                u.SkillLevel,
+                u.IsApproved,
+                u.RegistrationDate,
+                u.Courses,
+                u.FlashCards,
+                u.Rating,
+                CreatedBy = u.CreatedBy?.Username,
+                u.ContactUs
+            });
 
             
             var totalCount = _unitofwork.Users.FindAll(criteria).Count();
@@ -232,7 +253,16 @@ namespace GraduationProject.Controllers
             
             if (!string.IsNullOrWhiteSpace(UpdateDto.Name))  user.Name = UpdateDto.Name;
             if (!string.IsNullOrWhiteSpace(UpdateDto.BIO)) user.BIO = UpdateDto.BIO;
-            if (!string.IsNullOrWhiteSpace(UpdateDto.Username)) user.Username = UpdateDto.Username;
+            if (!string.IsNullOrWhiteSpace(UpdateDto.Username))
+            {
+                var existsUsername = _context.users.Any(u => u.Username == UpdateDto.Username && u.Id != user.Id);
+                if (existsUsername)
+                {
+                    return BadRequest(new { message = "Username already taken, please choose another." });
+                }
+
+                user.Username = UpdateDto.Username;
+            }
 
             if (!string.IsNullOrWhiteSpace(UpdateDto.Password)) 
             {if (user.Password != UpdateDto.CurrentPassword)
@@ -349,7 +379,9 @@ namespace GraduationProject.Controllers
             // Save the user to the database
             _context.users.Add(newUser);
                 _context.SaveChanges();
-                if (registerDto.Role == "teacher")
+            newUser.CreatedById = newUser.Id;
+            _context.SaveChanges();
+            if (registerDto.Role == "teacher")
                 {
                     // Send email to teacher informing them to wait for approval
                     var teacherEmailBody = $"Dear {registerDto.Name},\n\n" +
@@ -367,7 +399,7 @@ namespace GraduationProject.Controllers
         [Authorize(Policy = "AdminPolicy")]
         public async Task<IActionResult> AdminRegister(RegisterDto registerDto)
         {
-
+            var adminId = int.Parse(User.FindFirst("Id").Value);
             if (registerDto.Role == "student")
             {
                 var allowedSkillLevels = new[] { "Beginner", "Intermediate", "Advanced" };
@@ -391,7 +423,8 @@ namespace GraduationProject.Controllers
                 PreferredCategory = registerDto.Role == "student" ? registerDto.PreferredCategory : null,
                 SkillLevel = registerDto.Role == "student" ? registerDto.SkillLevel : null,
                 RegistrationDate = DateTime.Now,
-                BIO = registerDto.BIO
+                BIO = registerDto.BIO,
+                CreatedById= adminId
             };
 
             _context.users.Add(newUser);

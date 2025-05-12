@@ -37,6 +37,7 @@ namespace GraduationProject.Controllers
                 var skip = (page - 1) * pageSize;
                 var categories = _unitOfWork.category.FindAll(
                     criteria: criteria,
+                    includes: new[] { "CreatedBy" },
                     orderBy: x => x.CreatonDate,
                     orderByDirection: "DESC",
                     skip: skip,
@@ -47,7 +48,13 @@ namespace GraduationProject.Controllers
 
                 var response = new
                 {
-                    Categories = categories,
+                    Categories = categories.Select(c => new
+                    {
+                        id = c.Id,
+                        name = c.Name,
+                        creaton_date = c.CreatonDate,
+                        created_by = c.CreatedBy?.Username 
+                    }),
                     Pagination = new
                     {
                         CurrentPage = page,
@@ -87,22 +94,18 @@ namespace GraduationProject.Controllers
                 var existingCategory = await _unitOfWork.category
                          .FindOneAsync(x => x.Name.ToLower() == dto.Name.ToLower());
 
-                var useremail = User.FindFirst("Email")?.Value;
+                var UserId =int.Parse( User.FindFirst("Id")?.Value);
                 if (existingCategory != null)
                 {
                     return BadRequest(new { Message = "A category with this name already exists" });
                 }
                 var category = new Category() {Name =dto.Name ,
-                CreatonDate=DateTime.Now, CreatedBy =useremail
+                CreatonDate=DateTime.Now ,CreatedById=UserId
                 };
                 var createdCategory = await _unitOfWork.category.AddAsync(category);
                  await _unitOfWork.CompleteAsync();
 
-                return CreatedAtAction(
-                    nameof(GetCategory),
-                    new { id = createdCategory.Id },
-                    createdCategory
-                );
+                return Created();
             }
             catch (ArgumentException ex)
             {

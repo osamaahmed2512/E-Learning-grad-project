@@ -22,7 +22,8 @@ namespace GraduationProject.models
         public List<Course> Courses { get; set; }
         public List<FlashCard> FlashCards { get; set; }
         public ICollection<Rating> Rating { get; set; }
-       
+        public int? CreatedById { get; set; }
+        public User? CreatedBy { get; set; } 
         public virtual List<Contactus>? ContactUs { get; set; }
     }
 }
