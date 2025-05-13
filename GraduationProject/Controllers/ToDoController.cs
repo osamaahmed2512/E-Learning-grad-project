@@ -45,7 +45,7 @@ namespace GraduationProject.Controllers
         }
 
         [HttpGet]
-        [Authorize("StudentPolicy")]
+        [Authorize("InstructorAndUserPolicy")]
         public async Task<IActionResult> Get()
         { 
 
@@ -61,7 +61,7 @@ namespace GraduationProject.Controllers
         }
 
         [HttpPut]
-        [Authorize("StudentPolicy")]
+        [Authorize("InstructorAndUserPolicy")]
         public async Task<IActionResult> Update(updateTodoDto dto)
         {
 
@@ -85,6 +85,7 @@ namespace GraduationProject.Controllers
             return NoContent();
         }
         [HttpGet("status/{status}")]
+        [Authorize("InstructorAndUserPolicy")]
         public async Task<IActionResult> GetTasksByStatus(string status)
         {
 
@@ -103,6 +104,7 @@ namespace GraduationProject.Controllers
         }
         
         [HttpDelete("{id}")]
+        [Authorize("InstructorAndUserPolicy")]
         public async Task<IActionResult> DeleteTask(int id)
         {
             var userId = User.FindFirst("Id").Value;;
