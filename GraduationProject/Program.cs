@@ -77,6 +77,7 @@ namespace GraduationProject
                 options.SerializerOptions.WriteIndented = true;
                 options.SerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.SnakeCaseLower));
             });
+            builder.Services.AddAutoMapper(typeof(Program));
             builder.Services.AddScoped<IStripeService, StripeService>();
             builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
             StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];

@@ -119,6 +119,21 @@ namespace GraduationProject.Controllers
 
             return Ok("Deleted Successfully");
         }
+
+
+        [HttpGet("count")]
+        [Authorize("InstructorAndUserPolicy")]
+        public async Task<IActionResult> GetTaskCount()
+        {
+            var userId = User.FindFirst("Id")?.Value;
+            if (userId == null)
+            {
+                return Unauthorized("User Not found");
+            }
+
+            var count = await _UnitOfWork.ToDo.Count(x => x.UserId == int.Parse(userId)&&x.Status== "completed");
+            return Ok(new { TaskCount = count });
+        }
         private bool IsValidStatus(string status)
         {
             return new[] { "todo", "doing", "done" }.Contains(status.ToLower());

@@ -16,6 +16,6 @@ namespace GraduationProject.models
 
         public string Mode { get; set; }
 
-        public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
+        public DateTime LastUpdated { get; set; } = DateTime.Now;
     }
 }

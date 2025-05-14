@@ -1,5 +1,8 @@
-﻿using GraduationProject.data;
+﻿using AutoMapper;
+using GraduationProject.data;
+using GraduationProject.Dto;
 using GraduationProject.models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -8,18 +11,22 @@ namespace GraduationProject.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize("StudentPolicy")]
     public class TimerSettingsController : ControllerBase
     {
         private readonly AppDBContext _context;
-        public TimerSettingsController(AppDBContext context)
+        private readonly IMapper _mapper;
+        public TimerSettingsController(AppDBContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         
-        [HttpGet("{userId}")]
-        public async Task<ActionResult<TimerSettings>> GetTimerSettings(int userId)
+        [HttpGet]
+        public async Task<ActionResult<TimerSettings>> GetTimerSettings()
         {
+            var userId = int.Parse(User.FindFirst("Id")?.Value);
             var settings = await _context.TimerSettings
                 .FirstOrDefaultAsync(s => s.UserId == userId);
 
@@ -33,51 +40,58 @@ namespace GraduationProject.Controllers
 
         // POST: api/TimerSettings
         [HttpPost]
-        public async Task<ActionResult<TimerSettings>> CreateTimerSettings(TimerSettings settings)
+
+        public async Task<ActionResult<TimerSettings>> CreateTimerSettings(TimerSettingDto dto)
         {
+            var userId = int.Parse(User.FindFirst("Id")?.Value);
+            var existingSettings = await _context.TimerSettings
+    .FirstOrDefaultAsync(s => s.UserId == userId);
+
+            if (existingSettings != null)
+            {
+                return BadRequest(new { Message = "Settings already exist for this user. Use PUT to update." });
+            }
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
+           
+           
+           
 
-            // Verify User exists
-            var user = await _context.Users.FindAsync(settings.UserId);
-            if (user == null)
-            {
-                return BadRequest("Invalid UserId");
-            }
 
-            settings.LastUpdated = DateTime.UtcNow;
-            _context.TimerSettings.Add(settings);
+          var setting=_mapper.Map<TimerSettings>(dto);
+            setting.UserId = userId;
+            _context.TimerSettings.Add(setting);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetTimerSettings), new { userId = settings.UserId }, settings);
+            return CreatedAtAction(nameof(GetTimerSettings), new { userId = setting.UserId }, setting);
         }
 
-        // PUT: api/TimerSettings/{userId}
-        [HttpPut("{userId}")]
-        public async Task<IActionResult> UpdateTimerSettings(int userId, TimerSettings settings)
+
+        [HttpPut]
+        public async Task<IActionResult> UpdateTimerSettings( TimerSettingDto settings)
         {
-            if (userId != settings.UserId)
-            {
-                return BadRequest();
-            }
+            var userId = int.Parse(User.FindFirst("Id")?.Value);
+
 
             var existingSettings = await _context.TimerSettings
                 .FirstOrDefaultAsync(s => s.UserId == userId);
 
             if (existingSettings == null)
             {
-                return NotFound();
+                return NotFound("setting not found");
             }
+            _mapper.Map(settings, existingSettings);
 
-            existingSettings.WorkDuration = settings.WorkDuration;
-            existingSettings.ShortBreakDuration = settings.ShortBreakDuration;
-            existingSettings.LongBreakDuration = settings.LongBreakDuration;
-            existingSettings.CustomWorkDuration = settings.CustomWorkDuration;
-            existingSettings.CustomBreakDuration = settings.CustomBreakDuration;
-            existingSettings.ActiveMode = settings.ActiveMode;
-            existingSettings.LastUpdated = DateTime.UtcNow;
+            //existingSettings.WorkDuration = settings.WorkDuration;
+            //existingSettings.ShortBreakDuration = settings.ShortBreakDuration;
+            //existingSettings.LongBreakDuration = settings.LongBreakDuration;
+            //existingSettings.CustomWorkDuration = settings.CustomWorkDuration;
+            //existingSettings.CustomBreakDuration = settings.CustomBreakDuration;
+            //existingSettings.ActiveMode = settings.ActiveMode;
+            //existingSettings.LastUpdated = DateTime.UtcNow;
 
             try
             {

@@ -176,6 +176,21 @@ namespace GraduationProject.Controllers
             return Ok("Deleted Successfully");
         }
 
+        [HttpGet("count")]
+        [Authorize("StudentPolicy")]
+        public async Task<IActionResult> GetFlashCardCount()
+        {
+            var userId =int.Parse(User.FindFirst("Id")?.Value);
+            if (userId == null)
+            {
+                return Unauthorized("User Not found");
+            }
+
+            var count = await _context.Flashcards.Where(x => x.UserId == userId).CountAsync();
+            return Ok(new { TaskCount = count });
+        }
+
+
         private int GetCurrentUserId()
         {
             var userIdClaim = User.FindFirst("Id")?.Value;
@@ -185,7 +200,9 @@ namespace GraduationProject.Controllers
             }
             return userId;
         }
-        // Add method to get current username
+       
+        
+        
         private string? GetCurrentEmail()
         {
 
