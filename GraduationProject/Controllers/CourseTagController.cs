@@ -1,4 +1,6 @@
 ﻿using GraduationProject.data;
+using GraduationProject.Dto;
+using GraduationProject.models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -16,6 +18,43 @@ namespace GraduationProject.Controllers
         public CourseTagController(AppDBContext context)
         {
             _context = context;
+        }
+
+        [HttpPost("course/{courseId}")]
+        [ServiceFilter(typeof(CustomModelStateFilter))]
+        public async Task<IActionResult> AddCourseTag(int courseId, [FromBody] AddTagDto Dto )
+        {   
+            
+            var course = await _context.courses.Include(c => c.CourseTags).FirstOrDefaultAsync(c => c.Id == courseId);
+            if (course == null)
+            {
+                return NotFound(new { Message = "Course not found" });
+            }
+            var userId = int.Parse(User.FindFirst("Id")?.Value);
+            var userRole = User.FindFirst("Role")?.Value;
+
+           
+            if (userRole == "teacher" && course.Instructor_Id != userId)
+            {
+                return Unauthorized(new { Message = "You can only update your own courses" });
+            }
+
+ 
+
+                // Add new tags
+                foreach (var tagName in Dto.Tag)
+                {
+                    var tag = await _context.Tags.FirstOrDefaultAsync(t => t.Name == tagName);
+                    if (tag == null)
+                    {
+                        tag = new Tag { Name = tagName };
+                       await _context.Tags.AddAsync(tag);
+                    }
+
+                    course.CourseTags.Add(new CourseTag { Tag = tag });
+                }
+                _context.SaveChanges();
+            return Ok("Tag Added Successfully");
         }
 
         // DELETE: api/CourseTag/course/{courseId}/tag/{tagId}

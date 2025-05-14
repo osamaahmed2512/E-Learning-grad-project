@@ -23,7 +23,7 @@ namespace GraduationProject.Dto
         [Range(0, 100, ErrorMessage = "Discount must be between 0 and 100")]
         public double? Discount { get; set; } = 0;
         public IFormFile? Image { get; set; }
-        public List<string>? Tag { get; set; }
+
 
     }
 }

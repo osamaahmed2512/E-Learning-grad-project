@@ -461,28 +461,6 @@ namespace GraduationProject.Controllers
                     course.ImgUrl = $"/courseImages/{fileName}";
                 }
 
-                // Update tags if provided
-                if (courseUpdateDto.Tag != null && courseUpdateDto.Tag.Any())
-                {
-                    // Clear existing tags
-                    if (course.CourseTags != null && course.CourseTags.Any())
-                    {
-                        _context.CourseTags.RemoveRange(course.CourseTags);
-                    }
-
-                    // Add new tags
-                    foreach (var tagName in courseUpdateDto.Tag)
-                    {
-                        var tag = await _context.Tags.FirstOrDefaultAsync(t => t.Name == tagName);
-                        if (tag == null)
-                        {
-                            tag = new Tag { Name = tagName };
-                            _context.Tags.Add(tag);
-                        }
-
-                        course.CourseTags.Add(new CourseTag { Tag = tag });
-                    }
-                }
 
                 // Save changes to the database
                 await _context.SaveChangesAsync();
