@@ -75,7 +75,11 @@ namespace GraduationProject.Controllers
         public async Task<IActionResult> CreateFlashCard(CreateFlashCardDTO createDto)
         {
             try
-            { 
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
                 var userId = GetCurrentUserId();
 
                 var useremail =GetCurrentEmail();
@@ -172,7 +176,7 @@ namespace GraduationProject.Controllers
             }
 
             _flashcardRepository.Delete(flashcard);
-
+            _context.SaveChanges();
             return Ok("Deleted Successfully");
         }
 

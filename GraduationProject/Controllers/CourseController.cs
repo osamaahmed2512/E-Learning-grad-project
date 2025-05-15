@@ -484,7 +484,7 @@ namespace GraduationProject.Controllers
 
         [HttpGet]
         [Route("GetCourseById/{id}")]
-        [Authorize("InstructorAndAdminPolicy")]
+        //[Authorize("InstructorAndAdminPolicy")]
         public async Task<IActionResult> GetCourseById(int id)
         {
             // Retrieve the course by its ID with related data

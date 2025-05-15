@@ -23,25 +23,104 @@ namespace GraduationProject.Controllers
             _unitofwork = unitofwork;
         }
 
-        
-      
-        [HttpGet("GetStudentSubscriptions/{studentId}")]
-        public async Task<IActionResult> GetStudentSubscriptions(int studentId)
+        [HttpGet("GetUserSubscribedCourses")]
+        [Authorize("StudentPolicy")]
+        public async Task<IActionResult> GetUserSubscribedCourses()
         {
-            var subscriptions = await _context.Subscriptions
-                .Where(s => s.StudentId == studentId)
-                .Include(s => s.Course)
-                .Select(s => new
-                {
-                    s.Course.Id,
-                    s.Course.Name,
-                    s.SubscriptionDate,
-                    s.Isactive
-                })
-                .ToListAsync();
+            try
+            {
+                // Get current user ID from claims
+                var userId = int.Parse(User.FindFirst("Id")?.Value);
 
-            return Ok(subscriptions);
+                // Get all subscribed courses with related data
+                var subscriptions = await _context.Subscriptions
+                    .Include(s => s.Course)
+                        .ThenInclude(c => c.Sections)
+                            .ThenInclude(s => s.Lessons)
+                    .Where(s => s.StudentId == userId && s.Isactive)
+                    .Select(s => new
+                    {
+                        CourseId = s.Course.Id,
+                        CourseTitle = s.Course.Name,
+                        CourseImage = s.Course.ImgUrl,
+                        TotalHours = s.Course.No_of_hours,
+                        TotalLectures = s.Course.Sections.SelectMany(sec => sec.Lessons).Count(),
+                        Progress = new
+                        {
+                            WatchedHours = _context.LessonProgress
+                                .Where(lp => lp.UserId == userId &&
+                                    s.Course.Sections.SelectMany(sec => sec.Lessons)
+                                    .Select(l => l.Id).Contains(lp.LessonId))
+                                .Sum(lp => (double)lp.WatchedSeconds / 3600),
+
+                            CompletedLectures = _context.LessonProgress
+                                .Count(lp => lp.UserId == userId &&
+                                    s.Course.Sections.SelectMany(sec => sec.Lessons)
+                                    .Select(l => l.Id).Contains(lp.LessonId) &&
+                                    lp.WatchedSeconds > 0)
+                        }
+                    })
+                    .ToListAsync();
+
+                // Calculate additional metrics and format response
+                var result = subscriptions.Select(s =>
+                {
+                    // Calculate progress percentage
+                    var progressPercentage = s.TotalHours > 0
+                        ? Math.Round((s.Progress.WatchedHours / s.TotalHours) * 100, 1)
+                        : 0;
+
+                    // Determine course status based on 92% threshold
+                    var status = progressPercentage >= 92 ? "Completed" : "On Going";
+
+                    return new
+                    {
+                        s.CourseId,
+                        s.CourseTitle,
+                        s.CourseImage,
+                        TotalHours = Math.Round(s.TotalHours, 2),
+                        LecturesProgress = $"{s.Progress.CompletedLectures} / {s.TotalLectures} Lectures",
+                        ProgressPercentage = progressPercentage,
+                        Status = status,
+                        LastUpdated = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")
+                    };
+                });
+
+                return Ok(new
+                {
+                    StatusCode = StatusCodes.Status200OK,
+                    Message = "Subscribed courses retrieved successfully",
+                    Data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    StatusCode = StatusCodes.Status500InternalServerError,
+                    Message = "An error occurred while fetching subscribed courses",
+                    Error = ex.Message
+                });
+            }
         }
+
+        //[HttpGet("GetStudentSubscriptions/{studentId}")]
+        //public async Task<IActionResult> GetStudentSubscriptions(int studentId)
+        //{
+        //    var subscriptions = await _context.Subscriptions
+        //        .Where(s => s.StudentId == studentId)
+        //        .Include(s => s.Course)
+        //        .Select(s => new
+        //        {
+        //            s.Course.Id,
+        //            s.Course.Name,
+        //            s.SubscriptionDate,
+        //            s.Isactive
+        //        })
+        //        .ToListAsync();
+
+        //    return Ok(subscriptions);
+        //}
 
         //// 🔹 Unsubscribe a student from a course
         //[HttpDelete("Unsubscribe/{studentId}/{courseId}")]
@@ -73,7 +152,7 @@ namespace GraduationProject.Controllers
 
         //    return Ok(new { Message = "Unsubscribed successfully" });
         //}
-                // 🔹 Unsubscribe a student from a course
+        // 🔹 Unsubscribe a student from a course
         [HttpDelete("Removesubscribe/{studentId}/{courseId}")]
         [Authorize("AdminPolicy")]
         public async Task<IActionResult> Removesubscribe( int courseId, int studentId)

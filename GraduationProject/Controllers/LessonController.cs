@@ -253,14 +253,18 @@ namespace GraduationProject.Controllers
         public async Task<IActionResult> DeleteLesson(int id)
         {
            
-            var lesson = await _context.Lesson.FindAsync(id);
+            var lesson = await _context.Lesson.Include(l =>l.Section).FirstOrDefaultAsync(l=>l.Id==id);
             if (lesson == null)
             {
                 return NotFound(new {Message="Lesson not found"});
             }
-
+            int? courseId = lesson.Section?.CourseId;
             _context.Lesson.Remove(lesson);
             await _context.SaveChangesAsync();
+            if (courseId.HasValue)
+            {
+                await UpdateCourseHours(courseId.Value);
+            }
 
             return Ok(new {Message = "Lesson deleted succesfully"});
         }
@@ -313,7 +317,17 @@ namespace GraduationProject.Controllers
 
             return Ok();
         }
-        
+        [HttpPost("recalculate-all-course-hours")]
+
+        public async Task<IActionResult> RecalculateAllCourseHours()
+        {
+            var courses = await _context.courses.ToListAsync();
+            foreach (var course in courses)
+            {
+                await UpdateCourseHours(course.Id);
+            }
+            return Ok(new { Message = "All course hours have been recalculated" });
+        }
         private async Task UpdateCourseProgress(int userId, int lessonId)
         {
             var lesson = await _context.Lesson.Include(l => l.Section).FirstAsync(l => l.Id == lessonId);
@@ -347,7 +361,7 @@ namespace GraduationProject.Controllers
             }
 
             rating.TimeSpentHours = totalWatchedHours;
-            rating.CompletionStatus = completionPercentage >= 90 ? "Yes" : "No";
+            rating.CompletionStatus = completionPercentage >=92? "Yes" : "No";
 
             await _context.SaveChangesAsync();
         }
