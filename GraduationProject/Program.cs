@@ -210,14 +210,26 @@ namespace GraduationProject
 
             var app = builder.Build();
 
-          
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
+
+
+            app.UseDeveloperExceptionPage();
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
             {
-                app.UseDeveloperExceptionPage();
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "GraduationProject API v1");
+                c.RoutePrefix = string.Empty;
+            });
+
+            //if (app.Environment.IsDevelopment())
+            //{
+            //    app.UseDeveloperExceptionPage();
+            //    app.UseSwagger();
+            //    app.UseSwaggerUI();
+
+            //}
+
+
+
             app.UseAuthentication();
             app.UseCors("AllowAll");
             app.UseHttpsRedirection();

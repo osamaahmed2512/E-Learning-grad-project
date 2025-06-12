@@ -7,7 +7,7 @@ namespace GraduationProject.Dto
     {
         [Required(ErrorMessage = "Name is required")]
         [StringLength(50, MinimumLength = 2, ErrorMessage = "Name must be between 2 and 50 characters")]
-        [RegularExpression(@"^[\p{L} \.'\-]+$", ErrorMessage = "Name can only contain letters, spaces, apostrophes, or hyphens")]
+        [RegularExpression(@"^[\u0621-\u064Aa-zA-Z \.'\-]+$", ErrorMessage = "Name can only contain letters, spaces, apostrophes, or hyphens")]
 
         public string Name { get; set; }
         [Required(ErrorMessage = "Email is required")]

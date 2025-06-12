@@ -4,6 +4,7 @@ using GraduationProject.data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GraduationProject.Migrations
 {
     [DbContext(typeof(AppDBContext))]
-    partial class AppDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250611155746_updateuserTodo23")]
+    partial class updateuserTodo23
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -173,19 +176,6 @@ namespace GraduationProject.Migrations
                     b.HasIndex("TagId");
 
                     b.ToTable("CourseTags");
-                });
-
-            modelBuilder.Entity("GraduationProject.models.FachcardCount", b =>
-                {
-                    b.Property<int>("Id")
-                        .HasColumnType("int");
-
-                    b.Property<int>("FlashCardCount")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("FachcardCount");
                 });
 
             modelBuilder.Entity("GraduationProject.models.FlashCard", b =>
@@ -712,17 +702,6 @@ namespace GraduationProject.Migrations
                     b.Navigation("Course");
 
                     b.Navigation("Tag");
-                });
-
-            modelBuilder.Entity("GraduationProject.models.FachcardCount", b =>
-                {
-                    b.HasOne("GraduationProject.models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("GraduationProject.models.FlashCard", b =>

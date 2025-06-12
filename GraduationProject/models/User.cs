@@ -25,5 +25,8 @@ namespace GraduationProject.models
         public int? CreatedById { get; set; }
         public User? CreatedBy { get; set; } 
         public virtual List<Contactus>? ContactUs { get; set; }
+        public int TotalCompletedTasks { get; set; } = 0;
+        public bool HasCompleted10Tasks { get; set; } = false;
+
     }
 }

@@ -2,6 +2,7 @@
 using GraduationProject.Dto;
 using GraduationProject.models;
 using GraduationProject.Services;
+using Humanizer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -38,6 +39,16 @@ namespace GraduationProject.Controllers
                UpdatedAt = DateTime.Now,
                UserId = int.Parse(userId)
             };
+            var user = await _UnitOfWork.Users.FindOneAsync(u => u.Id == int.Parse(userId));
+            if (user != null && task.Status.ToLower() == "completed")
+            {
+                user.TotalCompletedTasks += 1;
+
+                if (!user.HasCompleted10Tasks && user.TotalCompletedTasks >= 10)
+                {
+                    user.HasCompleted10Tasks = true;
+                }
+            }
             await  _UnitOfWork.ToDo.AddAsync(Todo);
             await _UnitOfWork.CompleteAsync();
 
@@ -80,8 +91,19 @@ namespace GraduationProject.Controllers
             exiatiingtodo.Title = dto.Title;
             exiatiingtodo.Status = dto.Status;
             exiatiingtodo.UpdatedAt= DateTime.Now;
+            var user = await _UnitOfWork.Users.FindOneAsync(u => u.Id == int.Parse(userId));
+            if (user != null && dto.Status.ToLower() == "completed" && exiatiingtodo.Status.ToLower() == "completed")
+            {
+                user.TotalCompletedTasks += 1;
 
-           await _UnitOfWork.CompleteAsync();
+                if (!user.HasCompleted10Tasks && user.TotalCompletedTasks >= 10)
+                {
+                    user.HasCompleted10Tasks = true;
+                }
+            }
+            await _UnitOfWork.CompleteAsync();
+
+
             return NoContent();
         }
         [HttpGet("status/{status}")]
@@ -134,6 +156,19 @@ namespace GraduationProject.Controllers
             var count = await _UnitOfWork.ToDo.Count(x => x.UserId == int.Parse(userId)&&x.Status== "completed");
             return Ok(new { TaskCount = count });
         }
+        [HttpGet("Finshed_10_Task")]
+        [Authorize("InstructorAndUserPolicy")]
+        public async Task<IActionResult> HasReachedGoal()
+        {
+            var userId = int.Parse(User.FindFirst("Id").Value);
+            var user = await _UnitOfWork.Users.FindOneAsync(u => u.Id == userId);
+            return Ok(new
+            {
+                hasCompleted10Tasks = user?.HasCompleted10Tasks ?? false,
+                totalCompletedTasks = user?.TotalCompletedTasks ?? 0
+            });
+        }
+
         private bool IsValidStatus(string status)
         {
             return new[] { "todo", "doing", "done" }.Contains(status.ToLower());

@@ -99,7 +99,7 @@ namespace GraduationProject.Controllers
                 {
                     return BadRequest(new { Message = "A category with this name already exists" });
                 }
-                var category = new Category() {Name =dto.Name ,
+                var category = new Category() {Name =dto.Name.ToLower() ,
                 CreatonDate=DateTime.Now ,CreatedById=UserId
                 };
                 var createdCategory = await _unitOfWork.category.AddAsync(category);
@@ -127,6 +127,14 @@ namespace GraduationProject.Controllers
                 var existingCategory = await _unitOfWork.category.GetByIdAsync(id);
                 if (existingCategory == null)
                     return NotFound(new { Message = $"Category with ID {id} not found" });
+                // 🔍 Check if another category with the same name exists
+                var duplicateCategory = await _unitOfWork.category
+                    .FindOneAsync(x => x.Name.ToLower() == dto.Name.ToLower() && x.Id != id);
+
+                if (duplicateCategory != null)
+                {
+                    return BadRequest(new { Message = "A category with this name already exists" });
+                }
                 existingCategory.Name = dto.Name.ToLower();
                 var updatedCategory = await _unitOfWork.category.UpdateAsync(id, existingCategory);
                 await _unitOfWork.CompleteAsync();

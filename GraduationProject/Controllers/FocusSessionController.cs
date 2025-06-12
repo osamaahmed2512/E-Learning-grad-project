@@ -10,7 +10,7 @@ namespace GraduationProject.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize("StudentPolicy")]
+    [Authorize(Policy = "StudentPolicy")]
     public class FocusSessionController : ControllerBase
     {
         private readonly AppDBContext _context;
@@ -46,6 +46,27 @@ namespace GraduationProject.Controllers
 
             return Ok(_mapper.Map<FocusSessionDto>(session));
         }
+
+        [HttpGet("totals")]
+        public async Task<IActionResult> GetTotalFocusTime()
+        {
+            var userId = int.Parse(User.FindFirst("Id")?.Value);
+
+            var totalWorkMinutes = await _context.focusSessions
+                .Where(s => s.UserId == userId)
+                .SumAsync(s => (int?)s.WorkMinutes) ?? 0;
+
+            var totalBreakMinutes = await _context.focusSessions
+                .Where(s => s.UserId == userId)
+                .SumAsync(s => (int?)s.BreakMinutes) ?? 0;
+
+            return Ok(new
+            {
+                totalWorkMinutes,
+                totalBreakMinutes
+            });
+        }
+
 
         [HttpPut("update")]
         public async Task<IActionResult> UpdateSessionTime([FromBody] UpdateSessionTimeDto dto)

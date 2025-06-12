@@ -6,7 +6,7 @@ using GraduationProject.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Polly;
+using System.Web;
 
 namespace GraduationProject.Controllers
 {
@@ -265,7 +265,8 @@ namespace GraduationProject.Controllers
                 LevelOfCourse = courseDto.LevelOfCourse.ToLower(),
                 Price = courseDto.Price,
                 Discount = courseDto.Discount ?? 0,
-                Sections = new List<Section>()
+                Sections = new List<Section>(),
+                CourseUrl= $"http://localhost:5173/course/{HttpUtility.UrlEncode(courseDto.Name)}",
             };
 
             if (courseDto.Tag != null && courseDto.Tag.Any())
@@ -354,15 +355,15 @@ namespace GraduationProject.Controllers
                     _context.CourseTags.RemoveRange(course.CourseTags);
                 }
 
-                // Delete the course image
-                if (!string.IsNullOrEmpty(course.ImgUrl))
-                {
-                    var imagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", course.ImgUrl.TrimStart('/'));
-                    if (System.IO.File.Exists(imagePath))
-                    {
-                        System.IO.File.Delete(imagePath);
-                    }
-                }
+                //// Delete the course image
+                //if (!string.IsNullOrEmpty(course.ImgUrl))
+                //{
+                //    var imagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", course.ImgUrl.TrimStart('/'));
+                //    if (System.IO.File.Exists(imagePath))
+                //    {
+                //        System.IO.File.Delete(imagePath);
+                //    }
+                //}
 
                 // Remove the course
                 _context.courses.Remove(course);
@@ -436,15 +437,15 @@ namespace GraduationProject.Controllers
                 // Handle image upload if provided
                 if (courseUpdateDto.Image != null)
                 {
-                    // Delete the old image
-                    if (!string.IsNullOrEmpty(course.ImgUrl))
-                    {
-                        var oldImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", course.ImgUrl.TrimStart('/'));
-                        if (System.IO.File.Exists(oldImagePath))
-                        {
-                            System.IO.File.Delete(oldImagePath);
-                        }
-                    }
+                    //// Delete the old image
+                    //if (!string.IsNullOrEmpty(course.ImgUrl))
+                    //{
+                    //    var oldImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", course.ImgUrl.TrimStart('/'));
+                    //    if (System.IO.File.Exists(oldImagePath))
+                    //    {
+                    //        System.IO.File.Delete(oldImagePath);
+                    //    }
+                    //}
 
                     // Save the new image
                     var fileName = $"{Guid.NewGuid()}{Path.GetExtension(courseUpdateDto.Image.FileName)}";
@@ -530,7 +531,8 @@ namespace GraduationProject.Controllers
                         l.Name,
                         l.Description,
                         l.FileBath, // Note: "FileBath" might be a typo; should it be "FilePath"?
-                        l.DurationInHours
+                        l.DurationInHours,
+                        l.IsPreview
                     }).ToList()
                 }).ToList()
             };
@@ -643,7 +645,6 @@ namespace GraduationProject.Controllers
                         StudentId = userId,
                         CourseId = course.Id,
                         ClickCount = 1,
-                        CompletionStatus = "No",
                         TimeSpentHours = 0,
                         RatingDate = DateTime.UtcNow
                     };

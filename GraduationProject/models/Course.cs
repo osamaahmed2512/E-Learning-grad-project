@@ -16,6 +16,7 @@ namespace GraduationProject.models
         public string ImgUrl { get; set; } = "default-image-url.jpg";
         public string LevelOfCourse { get; set; }
         public double Price { get; set; }
+        public string? CourseUrl { get; set; }
         public double Discount { get; set; } = 0;
         public double DiscountedPrice  => Price - (Price * Discount / 100);
         public virtual List<CourseTag>? CourseTags { get; set; }

@@ -103,11 +103,11 @@ namespace GraduationProject.Controllers
             // Update video if provided
             if (lessonDto.video != null && lessonDto.video.Length > 0)
             {
-                var oldFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot" + lesson.FileBath);
-                if (System.IO.File.Exists(oldFilePath))
-                {
-                    System.IO.File.Delete(oldFilePath);
-                }
+                //var oldFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot" + lesson.FileBath);
+                //if (System.IO.File.Exists(oldFilePath))
+                //{
+                //    System.IO.File.Delete(oldFilePath);
+                //}
 
                 var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/videos");
                 if (!Directory.Exists(uploadsFolder))
@@ -252,8 +252,13 @@ namespace GraduationProject.Controllers
         [Authorize(Policy = "InstructorAndAdminPolicy")]
         public async Task<IActionResult> DeleteLesson(int id)
         {
-           
+            var userId = int.Parse(User.FindFirst("Id")?.Value);
+
             var lesson = await _context.Lesson.Include(l =>l.Section).FirstOrDefaultAsync(l=>l.Id==id);
+            if (lesson?.UserId != userId)
+            {
+                return Unauthorized("you are not authorized to perform this action");
+            }
             if (lesson == null)
             {
                 return NotFound(new {Message="Lesson not found"});

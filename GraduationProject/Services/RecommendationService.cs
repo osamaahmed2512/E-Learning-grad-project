@@ -17,8 +17,8 @@ namespace GraduationProject.Services
         private readonly ResiliencePipeline<HttpResponseMessage> _retryPolicy;
         private readonly JsonSerializerOptions _jsonOptions;
         private const int MAX_RETRIES = 3;
-        private const string RECOMMENDATION_ENDPOINT = "http://localhost:8006/recommend";
-
+        //private const string RECOMMENDATION_ENDPOINT = "http://localhost:8006/recommend";
+        private const string RECOMMENDATION_ENDPOINT = "https://osamaahmed2512003-learnify-recommendations.hf.space/recommend";
         public RecommendationService(HttpClient httpClient, ILogger<RecommendationService> logger)
         {
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));

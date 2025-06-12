@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pag
 using System;
 using System.Globalization;
 using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace GraduationProject.Controllers
 {
@@ -22,10 +23,10 @@ namespace GraduationProject.Controllers
     {
         private readonly AppDBContext _context;
         private readonly IGenaricRepository<FlashCard> _flashcardRepository;
-       
-        private  DateTime CurrentDateTime = DateTime.UtcNow; // Updated current time
 
-        public FlashcardsController(AppDBContext context , IGenaricRepository<FlashCard> flashcardRepository)
+        private DateTime CurrentDateTime = DateTime.UtcNow; // Updated current time
+
+        public FlashcardsController(AppDBContext context, IGenaricRepository<FlashCard> flashcardRepository)
         {
             _context = context;
             _flashcardRepository = flashcardRepository;
@@ -41,14 +42,14 @@ namespace GraduationProject.Controllers
                 return NotFound("flash card is not found");
             }
 
-           return Ok(flashcard);
+            return Ok(flashcard);
         }
 
         [HttpGet("GetUserFlashCards")]
         public async Task<IActionResult> GetUserFlashCards()
         {
             var userId = GetCurrentUserId();
-            var flashcards = await _flashcardRepository.FindAllAsync(f =>f.UserId == userId);
+            var flashcards = await _flashcardRepository.FindAllAsync(f => f.UserId == userId);
             if (flashcards == null)
             {
                 return NotFound("user has no flashcards");
@@ -62,7 +63,7 @@ namespace GraduationProject.Controllers
             var userId = GetCurrentUserId();
 
             var flashcards = await _flashcardRepository.FindAllAsync(f => f.UserId == userId && f.Difficulty == difficulty);
-            
+
             if (flashcards == null)
             {
                 return NotFound("flashcards not fund");
@@ -82,7 +83,7 @@ namespace GraduationProject.Controllers
                 }
                 var userId = GetCurrentUserId();
 
-                var useremail =GetCurrentEmail();
+                var useremail = GetCurrentEmail();
                 if (string.IsNullOrEmpty(useremail))
                 {
                     return Unauthorized("Could not extract user email from token.");
@@ -100,8 +101,23 @@ namespace GraduationProject.Controllers
                     LastModified = currentTime,
                     UserId = userId
                 };
-                _flashcardRepository.Add(flashcard);
+                var flashcardcount = await _context.FachcardCount.FirstOrDefaultAsync(u => u.Id == userId);
+                if (flashcardcount != null)
+                {
+                    flashcardcount.FlashCardCount += 1;
+                }
+                else
+                {
+                    _context.FachcardCount.Add(new FachcardCount
+                    {
+                        Id = userId,
+                        FlashCardCount = 1
+                    });
+                }
 
+
+                _flashcardRepository.Add(flashcard);
+                await _context.SaveChangesAsync();
 
 
                 return CreatedAtAction(nameof(GetFlashCard), new { id = flashcard.Id }, flashcard);
@@ -118,10 +134,10 @@ namespace GraduationProject.Controllers
         {
             var userId = GetCurrentUserId();
             var currentTime = CurrentDateTime;
-            var username =  GetCurrentEmail();
+            var username = GetCurrentEmail();
 
-            var flashcard =await  _flashcardRepository.FindOneAsync(x => x.Id == id && x.UserId == userId);
-            
+            var flashcard = await _flashcardRepository.FindOneAsync(x => x.Id == id && x.UserId == userId);
+
 
             if (flashcard == null)
             {
@@ -147,7 +163,7 @@ namespace GraduationProject.Controllers
 
             var userId = GetCurrentUserId();
             var currentTime = CurrentDateTime;
-            var useremail =  GetCurrentEmail();
+            var useremail = GetCurrentEmail();
 
             var flashcard = await _flashcardRepository.FindOneAsync(x => x.Id == id && x.UserId == userId);
 
@@ -168,7 +184,7 @@ namespace GraduationProject.Controllers
         public async Task<IActionResult> DeleteFlashCard(int id)
         {
             var userId = GetCurrentUserId();
-            var flashcard = await _flashcardRepository.FindOneAsync(x =>x.Id == id && x.UserId==userId) ;
+            var flashcard = await _flashcardRepository.FindOneAsync(x => x.Id == id && x.UserId == userId);
 
             if (flashcard == null)
             {
@@ -184,7 +200,7 @@ namespace GraduationProject.Controllers
         [Authorize("StudentPolicy")]
         public async Task<IActionResult> GetFlashCardCount()
         {
-            var userId =int.Parse(User.FindFirst("Id")?.Value);
+            var userId = int.Parse(User.FindFirst("Id")?.Value);
             if (userId == null)
             {
                 return Unauthorized("User Not found");
@@ -192,6 +208,19 @@ namespace GraduationProject.Controllers
 
             var count = await _context.Flashcards.Where(x => x.UserId == userId).CountAsync();
             return Ok(new { TaskCount = count });
+        }
+        [HttpGet("CreatedFlashcards")]
+        [Authorize("StudentPolicy")]
+        public async Task<IActionResult> GetCreatedFlashCardCount()
+        {
+            var userId = int.Parse(User.FindFirst("Id")?.Value);
+            if (userId == null)
+            {
+                return Unauthorized("User Not found");
+            }
+
+            var count = await _context.FachcardCount.Where(x => x.Id == userId).CountAsync();
+            return Ok(new { CreatedFlashCardCount = count });
         }
 
 
@@ -204,13 +233,13 @@ namespace GraduationProject.Controllers
             }
             return userId;
         }
-       
-        
-        
+
+
+
         private string? GetCurrentEmail()
         {
 
-            return  User.FindFirst("Email")?.Value
+            return User.FindFirst("Email")?.Value
         ?? User.FindFirst(ClaimTypes.Email)?.Value;
         }
 

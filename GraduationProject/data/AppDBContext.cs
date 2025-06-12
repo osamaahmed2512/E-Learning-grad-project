@@ -160,8 +160,9 @@ namespace GraduationProject.data
         public DbSet<FlashCard> Flashcards { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<Category> category { get; set; }
-        public DbSet<stripe_session> Stripe { get; set; }
+        //public DbSet<stripe_session> Stripe { get; set; }
         public DbSet<ToDo> Todo { get; set; }
         public DbSet<FocusSession> focusSessions { get; set; }
+        public DbSet<FachcardCount> FachcardCount { get; set; }
     }
 }

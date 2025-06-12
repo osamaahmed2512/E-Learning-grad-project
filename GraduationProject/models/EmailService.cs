@@ -17,7 +17,7 @@ namespace GraduationProject.models
             {
                 var emailSettings = _configuration.GetSection("EmailSettings");
                 var message = new MimeMessage();
-                message.From.Add(new MailboxAddress("Edemy", emailSettings["FromEmail"]));
+                message.From.Add(new MailboxAddress("Learnify", emailSettings["FromEmail"]));
                 message.To.Add(new MailboxAddress("", toEmail));
                 message.Subject = subject;
 

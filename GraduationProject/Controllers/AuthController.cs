@@ -150,6 +150,14 @@ namespace GraduationProject.Controllers
 
             return Ok(new { Message = "User deleted successfully" });
         }
+
+        [HttpGet]
+        [Route("Getallusersmachine")]
+        public async Task<IActionResult> Getallusersmachine()
+        {
+            return Ok(await _unitofwork.Users.GEtAllasync());
+        }
+
         [HttpGet]
         [Route("Getallusers")]
         [Authorize(Policy = "AdminPolicy")]
@@ -368,8 +376,8 @@ namespace GraduationProject.Controllers
                     Introduction = registerDto.Role == "teacher" ? registerDto.Introducton : null,
                     CVUrl = registerDto.Role == "teacher" ? cvUrl : null,
                     IsApproved = registerDto.Role == "student" ? true : false,
-                    PreferredCategory = registerDto.Role == "student" ? registerDto.PreferredCategory:null ,
-                    SkillLevel = registerDto.Role== "student"?registerDto.SkillLevel:null,
+                    PreferredCategory = registerDto.Role == "student" ? registerDto.PreferredCategory.ToLower():null ,
+                    SkillLevel = registerDto.Role== "student"?registerDto.SkillLevel.ToLower():null,
                     RegistrationDate=DateTime.UtcNow,
                     BIO=registerDto.BIO
                     
@@ -517,7 +525,7 @@ namespace GraduationProject.Controllers
                     "<p>Your OTP for password reset is: <b>" + otp + "</b>. It is valid for 5 minutes.</p>" +
                     "<p>If you did not request this, please ignore this email.</p>" +
                     "<p>Best regards,</p>" +
-                    "<p><b>Your Company Name</b></p>";
+                    "<p><b>Learnify Support</b></p>";
 
                 await _emailService.SendEmailAsync(email, "Password Reset OTP", emailBody);
                 return Ok(new { Message = "OTP sent to your email" });

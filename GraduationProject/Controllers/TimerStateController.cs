@@ -10,7 +10,7 @@ namespace GraduationProject.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize("StudentPolicy")]
+    [Authorize(Policy = "StudentPolicy")]
     public class TimerStateController : ControllerBase
     {
         private readonly AppDBContext _context;

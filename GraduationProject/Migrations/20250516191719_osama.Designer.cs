@@ -4,6 +4,7 @@ using GraduationProject.data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GraduationProject.Migrations
 {
     [DbContext(typeof(AppDBContext))]
-    partial class AppDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250516191719_osama")]
+    partial class osama
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -116,9 +119,6 @@ namespace GraduationProject.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("CourseUrl")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("datetime2");
 
@@ -173,19 +173,6 @@ namespace GraduationProject.Migrations
                     b.HasIndex("TagId");
 
                     b.ToTable("CourseTags");
-                });
-
-            modelBuilder.Entity("GraduationProject.models.FachcardCount", b =>
-                {
-                    b.Property<int>("Id")
-                        .HasColumnType("int");
-
-                    b.Property<int>("FlashCardCount")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("FachcardCount");
                 });
 
             modelBuilder.Entity("GraduationProject.models.FlashCard", b =>
@@ -365,6 +352,7 @@ namespace GraduationProject.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("CompletionStatus")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("CourseId")
@@ -608,9 +596,6 @@ namespace GraduationProject.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("HasCompleted10Tasks")
-                        .HasColumnType("bit");
-
                     b.Property<string>("ImageUrl")
                         .HasColumnType("nvarchar(max)");
 
@@ -641,9 +626,6 @@ namespace GraduationProject.Migrations
                     b.Property<string>("SkillLevel")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("TotalCompletedTasks")
-                        .HasColumnType("int");
-
                     b.Property<string>("Username")
                         .HasColumnType("nvarchar(max)");
 
@@ -652,6 +634,29 @@ namespace GraduationProject.Migrations
                     b.HasIndex("CreatedById");
 
                     b.ToTable("User");
+                });
+
+            modelBuilder.Entity("GraduationProject.models.stripe_session", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CourseId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Session")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Stripe");
                 });
 
             modelBuilder.Entity("GraduationProject.models.Answer", b =>
@@ -712,17 +717,6 @@ namespace GraduationProject.Migrations
                     b.Navigation("Course");
 
                     b.Navigation("Tag");
-                });
-
-            modelBuilder.Entity("GraduationProject.models.FachcardCount", b =>
-                {
-                    b.HasOne("GraduationProject.models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("GraduationProject.models.FlashCard", b =>
