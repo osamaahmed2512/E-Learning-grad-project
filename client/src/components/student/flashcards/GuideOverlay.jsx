@@ -21,14 +21,14 @@ const GuideOverlay = ({ onClose, currentStep, onNextStep, isLastStep }) => {
       className="fixed inset-0 bg-gray-900/25 backdrop-blur-[2px] flex items-center justify-center p-4 z-50"
       onClick={handleBackdropClick}
     >
-      <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl w-full max-w-md animate-scale-in border border-gray-200/50">
+      <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl w-full max-w-md animate-scale-in border border-gray-200/50 min-h-[420px] min-w-[350px] flex flex-col justify-between">
         <div className="relative">
           {/* Header with gradient */}
           <div className="p-6 border-b border-gray-200/50 bg-gradient-to-r from-gray-50 to-white rounded-t-2xl">
             {/* Close button */}
             <button
               onClick={onClose}
-              className="cursor-pointer absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-full"
+              className="cursor-pointer absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-full close-rotate"
               aria-label="Close guide"
             >
               <FaTimes className="text-xl" />
@@ -54,10 +54,10 @@ const GuideOverlay = ({ onClose, currentStep, onNextStep, isLastStep }) => {
               ))}
             </div>
 
-            {/* Icon with gradient background */}
+            {/* Icon with animated gradient background */}
             <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 flex items-center justify-center rounded-full bg-gradient-to-r from-blue-50 to-blue-100 text-blue-500 shadow-inner transform hover:scale-110 transition-transform duration-300">
-                <span className="text-3xl" role="img" aria-label={`Step ${currentStep + 1} icon`}>
+              <div className="w-16 h-16 flex items-center justify-center rounded-full bg-gradient-to-r from-blue-50 to-blue-100 text-blue-500 shadow-inner transform hover:scale-110 transition-transform duration-300 animate-bounce-once">
+                <span className="text-3xl guide-emoji" role="img" aria-label={`Step ${currentStep + 1} icon`}>
                   {step.icon}
                 </span>
               </div>
@@ -118,6 +118,32 @@ const styles = `
       opacity: 1;
       transform: scale(1);
     }
+  }
+
+  /* Fun bounce animation for the icon */
+  .animate-bounce-once {
+    animation: bounceGuide 0.7s cubic-bezier(0.68, -0.55, 0.27, 1.55) 1;
+  }
+  @keyframes bounceGuide {
+    0% { transform: scale(1); }
+    30% { transform: scale(1.2); }
+    50% { transform: scale(0.95); }
+    70% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+
+  /* Fixed modal size for consistent layout */
+  .guide-modal-fixed-size {
+    min-height: 420px;
+    min-width: 350px;
+    max-width: 400px;
+    max-height: 600px;
+  }
+
+  /* Rotate close button on hover */
+  .close-rotate:hover {
+    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+    transform: rotate(90deg);
   }
 `;
 

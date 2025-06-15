@@ -5,7 +5,7 @@ import axios from 'axios'
 // Helper function to format image URL
 const formatImageUrl = (url) => {
   if (!url) return assets.defaultUserImage;
-  return url.startsWith('http') ? url : `https://localhost:7018${url}`;
+  return url.startsWith('http') ? url : `https://learnify.runasp.net${url}`;
 };
 
 const initialState = {

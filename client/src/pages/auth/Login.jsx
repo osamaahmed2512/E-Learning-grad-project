@@ -8,7 +8,7 @@ import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useDispatch } from 'react-redux';
-import { loginSuccess, loginStart, loginFailure } from '../../store/UserSlice';
+import { loginSuccess, loginStart, loginFailure } from '../../store/userSlice';
 
 // Axios interceptor setup
 axios.interceptors.request.use(
@@ -180,7 +180,7 @@ const Login = () => {
     try {
       const response = await axios({
         method: 'post',
-        url: 'https://localhost:7018/api/Auth/Login',
+        url: 'https://learnify.runasp.net/api/Auth/Login',
         data: {
           email: email.trim(),
           password: password
@@ -209,7 +209,7 @@ const Login = () => {
         const formattedImageUrl = user.image_url 
           ? user.image_url.startsWith('http') 
             ? user.image_url 
-            : `https://localhost:7018${user.image_url}`
+            : `https://learnify.runasp.net${user.image_url}`
           : assets.defaultUserImage;
 
         // Prepare user data with properly formatted image URL

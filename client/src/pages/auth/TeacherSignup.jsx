@@ -161,7 +161,7 @@ const TeacherSignup = () => {
   
     axios({
       method: 'post',
-      url: 'https://localhost:7018/api/Auth/Register',
+      url: 'https://learnify.runasp.net/api/Auth/Register',
       data: formDataToSend,
       headers: {
         'Content-Type': 'multipart/form-data',

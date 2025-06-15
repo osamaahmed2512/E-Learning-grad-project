@@ -1,85 +1,118 @@
 import React, { memo } from 'react';
-import PropTypes from 'prop-types';
 import { useTodo } from '../../../context/TodoContext';
-import { FaArrowRight, FaArrowLeft, FaTrash } from 'react-icons/fa';
-import { Draggable } from '@hello-pangea/dnd';
 
-const TaskCard = memo(({ task, status, index }) => {
-  const { moveTask, handleDeleteTask } = useTodo();
+const TaskCard = memo(({ task }) => {
+    const { handleDeleteTask, moveTask } = useTodo();
 
-  return (
-    <Draggable draggableId={String(task.id)} index={index}>
-      {(provided, snapshot) => (
+    const handleDelete = async (e) => {
+        e.preventDefault();
+        try {
+            await handleDeleteTask(task.id);
+        } catch (error) {
+            console.error('Failed to delete task:', error);
+        }
+    };
+
+    const handleMove = async (direction) => {
+        try {
+            await moveTask(task.id, direction);
+        } catch (error) {
+            console.error('Failed to move task:', error);
+        }
+    };
+
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'todo':
+                return 'bg-red-50 border-l-4 border-red-400';
+            case 'doing':
+                return 'bg-yellow-50 border-l-4 border-yellow-400';
+            case 'done':
+                return 'bg-green-50 border-l-4 border-green-400';
+            default:
+                return 'bg-gray-50';
+        }
+    };
+
+    // Use created_at or updated_at from API
+    const createdAt = task.created_at || task.createdAt;
+    const updatedAt = task.updated_at || task.updatedAt;
+
+    // Format date as 'YYYY-MM-DD HH:MM AM/PM'
+    const formatDate = (dateString, label = '') => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        let hours = date.getHours();
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // the hour '0' should be '12'
+        const hourStr = String(hours).padStart(2, '0');
+        return `${label} ${year}-${month}-${day} ${hourStr}:${minutes} ${ampm}`;
+    };
+
+    return (
         <div
-          ref={provided.innerRef}
-          {...provided.draggableProps}
-          {...provided.dragHandleProps}
-          className={`bg-white rounded-lg shadow-sm border border-gray-100 
-                     hover:shadow-md transition-all duration-200
-                     ${snapshot.isDragging ? 'shadow-lg ring-2 ring-cyan-500/50' : ''}`}
+            className={`p-4 mb-3 rounded-lg shadow-sm border border-gray-200
+                ${getStatusColor(task.status)}
+                transition-all duration-200 hover:shadow-md
+                ${task.status === 'doing' ? 'bg-gradient-to-r from-yellow-50 to-white' : 
+                  task.status === 'todo' ? 'bg-gradient-to-r from-red-50 to-white' :
+                  'bg-gradient-to-r from-green-50 to-white'}`}
         >
-          <div className="p-4">
-            <div className="flex justify-between items-start mb-3">
-              <h3 className="text-lg font-medium text-gray-800 leading-tight">{task.task}</h3>
-              <div className="flex gap-1.5 ml-3">
-                {status !== 'todo' && (
-                  <button
-                    onClick={() => moveTask(task.id, 'backward')}
-                    className="p-2 rounded-md text-gray-500 hover:text-indigo-600 
-                             hover:bg-indigo-50 transition-all cursor-pointer"
-                    title="Move Back"
-                  >
-                    <FaArrowLeft size={14} />
-                  </button>
-                )}
-                {status !== 'done' && (
-                  <button
-                    onClick={() => moveTask(task.id, 'forward')}
-                    className="p-2 rounded-md text-gray-500 hover:text-indigo-600 
-                             hover:bg-indigo-50 transition-all cursor-pointer"
-                    title="Move Forward"
-                  >
-                    <FaArrowRight size={14} />
-                  </button>
-                )}
+            <div className="flex justify-between items-start">
+                <h3 className={`text-lg font-medium mb-2 flex-grow ${
+                    task.status === 'todo' ? 'text-red-800' :
+                    task.status === 'doing' ? 'text-yellow-800' :
+                    'text-green-800'
+                }`}>
+                    {task.title}
+                </h3>
                 <button
-                  onClick={() => handleDeleteTask(task.id)}
-                  className="p-2 rounded-md text-gray-500 hover:text-red-600 
-                           hover:bg-red-50 transition-all cursor-pointer"
-                  title="Delete Task"
+                    onClick={handleDelete}
+                    className="text-red-500 hover:text-red-700 transition-colors ml-2 p-1.5 rounded-full hover:bg-red-50 cursor-pointer"
                 >
-                  <FaTrash size={14} />
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
                 </button>
-              </div>
             </div>
-            <div className="text-xs text-gray-500 font-medium">
-              {new Date(task.createdAt).toLocaleDateString(undefined, {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-              })}
+
+            <div className="flex justify-between items-center mt-4">
+                <div className={`text-sm ${
+                    task.status === 'todo' ? 'text-red-600' :
+                    task.status === 'doing' ? 'text-yellow-600' :
+                    'text-green-600'
+                }`}>
+                    {createdAt && <div>{formatDate(createdAt, 'Created At')}</div>}
+                    {updatedAt && <div>{formatDate(updatedAt, 'Last Updated')}</div>}
+                </div>
+                <div className="flex space-x-2">
+                    {task.status !== 'todo' && (
+                        <button
+                            onClick={() => handleMove('backward')}
+                            className="p-2 text-gray-600 hover:text-blue-600 transition-all rounded-full hover:bg-blue-50 cursor-pointer transform hover:scale-110"
+                        >
+                            <span className="text-xl font-bold">←</span>
+                        </button>
+                    )}
+                    {task.status !== 'done' && (
+                        <button
+                            onClick={() => handleMove('forward')}
+                            className="p-2 text-gray-600 hover:text-blue-600 transition-all rounded-full hover:bg-blue-50 cursor-pointer transform hover:scale-110"
+                        >
+                            <span className="text-xl font-bold">→</span>
+                        </button>
+                    )}
+                </div>
             </div>
-          </div>
         </div>
-      )}
-    </Draggable>
-  );
+    );
 });
 
 TaskCard.displayName = 'TaskCard';
-
-TaskCard.propTypes = {
-  task: PropTypes.shape({
-    id: PropTypes.number.isRequired,
-    task: PropTypes.string.isRequired,
-    status: PropTypes.oneOf(['todo', 'doing', 'done']).isRequired,
-    createdAt: PropTypes.string.isRequired,
-    updatedAt: PropTypes.string.isRequired
-  }).isRequired,
-  status: PropTypes.oneOf(['todo', 'doing', 'done']).isRequired,
-  index: PropTypes.number.isRequired
-};
 
 export default TaskCard;

@@ -21,7 +21,7 @@ import {
   FaUserTag
 } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateUserProfile, updateUserImage, fetchUserDetails } from '../../store/UserSlice';
+import { updateUserProfile, updateUserImage, fetchUserDetails } from '../../store/userSlice';
 
 // Toast configuration
 const toastConfig = {
@@ -58,13 +58,13 @@ const showToast = {
 
 const EditOverlay = ({ isVisible, children }) => (
   <div className={`
-    fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4
+    fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-2 sm:p-4
     transition-opacity duration-300
     ${isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}
   `}>
     <div className={`
       bg-gradient-to-br from-cyan-50 via-white to-cyan-50 rounded-2xl shadow-2xl w-full max-w-xl
-      transform transition-all duration-300 border border-cyan-100 max-h-[80vh] overflow-y-auto
+      transform transition-all duration-300 border border-cyan-100 max-h-[95vh] overflow-y-auto
       ${isVisible ? 'scale-100 translate-y-0' : 'scale-95 translate-y-4'}
     `}>
       {children}
@@ -131,10 +131,31 @@ const ImageModal = ({ imageUrl, onClose }) => (
   </div>
 );
 
-const EditForm = ({ editedInfo, setEditedInfo, onSave, onCancel, fileInputRef, handleImageUpload, onDeleteImage }) => {
+const EditForm = ({ editedInfo, setEditedInfo, onSave, onCancel, fileInputRef, handleImageUpload, onDeleteImage, isUploading }) => {
   const maxBioLength = 250;
   const remainingChars = maxBioLength - (editedInfo.bio?.length || 0);
   const isOverLimit = remainingChars < 0;
+
+  // Add local validation for full name, username, and bio
+  const isFullNameEmpty = !editedInfo.fullName || editedInfo.fullName.trim() === '';
+  const isUsernameEmpty = !editedInfo.username || editedInfo.username.trim() === '';
+  const isBioEmpty = !editedInfo.bio || editedInfo.bio.trim() === '';
+
+  const handleSaveClick = () => {
+    if (isFullNameEmpty) {
+      toast.error('Full name cannot be empty', toastConfig);
+      return;
+    }
+    if (isUsernameEmpty) {
+      toast.error('Username cannot be empty', toastConfig);
+      return;
+    }
+    if (isBioEmpty) {
+      toast.error('Bio cannot be empty', toastConfig);
+      return;
+    }
+    onSave();
+  };
 
   const handleDeletePhoto = () => {
     setEditedInfo(prev => ({
@@ -142,20 +163,16 @@ const EditForm = ({ editedInfo, setEditedInfo, onSave, onCancel, fileInputRef, h
       avatarUrl: '',
       imageFile: null
     }));
-    
-    // Reset the file input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
-    
-    // Call the delete image function
     onDeleteImage();
   };
 
   return (
-    <div className="p-4 space-y-4 max-w-2xl mx-auto">
-      <div className="flex justify-between items-center border-b border-gray-200 pb-3">
-        <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+    <div className="p-2 sm:p-6 space-y-2 sm:space-y-4 max-w-2xl mx-auto">
+      <div className="flex justify-between items-center border-b border-gray-200 pb-2">
+        <h2 className="text-lg sm:text-xl font-semibold text-gray-800 flex items-center gap-2">
           <FaUser className="text-cyan-500" />
           Edit Profile
         </h2>
@@ -167,11 +184,11 @@ const EditForm = ({ editedInfo, setEditedInfo, onSave, onCancel, fileInputRef, h
         </button>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-1 sm:space-y-4">
         {/* Profile Picture Section */}
         <div className="flex justify-center">
           <div className="relative group">
-            <div className="w-[156px] h-[156px] rounded-full bg-gray-100 relative overflow-hidden">
+            <div className="w-[100px] h-[100px] sm:w-[156px] sm:h-[156px] rounded-full bg-gray-100 relative overflow-hidden">
               {editedInfo.avatarUrl ? (
                 <>
                   <img
@@ -201,20 +218,20 @@ const EditForm = ({ editedInfo, setEditedInfo, onSave, onCancel, fileInputRef, h
                     </div>
                   </div>
                   {/* Mobile controls (always visible) */}
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 flex justify-center gap-2 md:hidden">
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-1 sm:p-2 flex justify-center gap-1 sm:gap-2 md:hidden">
                     <button
                       onClick={() => fileInputRef.current?.click()}
-                      className="p-2 bg-white/90 rounded-full hover:bg-white transition-all"
+                      className="p-1.5 sm:p-2 bg-white/90 rounded-full hover:bg-white transition-all"
                       title="Change photo"
                     >
-                      <FaCamera className="text-gray-600 text-lg" />
+                      <FaCamera className="text-md sm:text-lg text-gray-600" />
                     </button>
                     <button
                       onClick={handleDeletePhoto}
-                      className="p-2 bg-white/90 rounded-full hover:bg-white transition-all"
+                      className="p-1.5 sm:p-2 bg-white/90 rounded-full hover:bg-white transition-all"
                       title="Remove photo"
                     >
-                      <FaTrash className="text-red-500 text-lg" />
+                      <FaTrash className="text-md sm:text-lg text-red-500" />
                     </button>
                   </div>
                 </>
@@ -224,8 +241,8 @@ const EditForm = ({ editedInfo, setEditedInfo, onSave, onCancel, fileInputRef, h
                   className="w-full h-full cursor-pointer hover:bg-gray-200 transition-all flex flex-col items-center justify-center group"
                 >
                   <div className="flex flex-col items-center transform transition-transform group-hover:scale-110">
-                    <FaCamera className="text-3xl text-gray-400 mb-2" />
-                    <span className="text-sm text-gray-500">Add Photo</span>
+                    <FaCamera className="text-xl sm:text-3xl text-gray-400 mb-2" />
+                    <span className="text-xs sm:text-sm text-gray-500">Add Photo</span>
                   </div>
                 </div>
               )}
@@ -241,9 +258,9 @@ const EditForm = ({ editedInfo, setEditedInfo, onSave, onCancel, fileInputRef, h
         </div>
 
         {/* Form Fields */}
-        <div className="space-y-4">
+        <div className="space-y-1 sm:space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
               <FaUser className="text-cyan-500" />
               Full Name
             </label>
@@ -251,14 +268,14 @@ const EditForm = ({ editedInfo, setEditedInfo, onSave, onCancel, fileInputRef, h
               type="text"
               value={editedInfo.fullName}
               onChange={e => setEditedInfo(prev => ({ ...prev, fullName: e.target.value }))}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all"
+              className="w-full px-3 py-2 sm:px-4 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all"
               placeholder="Your full name"
             />
           </div>
 
           <div>
             <div className="flex justify-between items-center mb-1">
-              <label className="block text-sm font-medium text-gray-700 flex items-center gap-2">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 flex items-center gap-2">
                 <FaUserTag className="text-cyan-500" />
                 Username
               </label>
@@ -268,14 +285,14 @@ const EditForm = ({ editedInfo, setEditedInfo, onSave, onCancel, fileInputRef, h
               type="text"
               value={editedInfo.username || ''}
               onChange={e => setEditedInfo(prev => ({ ...prev, username: e.target.value }))}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all"
+              className="w-full px-3 py-2 sm:px-4 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all"
               placeholder="Enter username"
             />
           </div>
 
           <div>
             <div className="flex justify-between items-center mb-1">
-              <label className="block text-sm font-medium text-gray-700 flex items-center gap-2">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 flex items-center gap-2">
                 <FaInfoCircle className="text-cyan-500" />
                 Bio
               </label>
@@ -288,7 +305,7 @@ const EditForm = ({ editedInfo, setEditedInfo, onSave, onCancel, fileInputRef, h
                 value={editedInfo.bio || ''}
                 onChange={e => setEditedInfo(prev => ({ ...prev, bio: e.target.value }))}
                 maxLength={maxBioLength}
-                className={`w-full px-4 py-3 border rounded-lg transition-all resize-none h-[120px] font-normal
+                className={`w-full px-3 py-2 sm:px-4 sm:py-3 border rounded-lg transition-all resize-none h-[80px] sm:h-[100px] font-normal
                   ${isOverLimit 
                     ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-transparent' 
                     : 'border-gray-300 focus:ring-2 focus:ring-cyan-500 focus:border-transparent'
@@ -300,30 +317,40 @@ const EditForm = ({ editedInfo, setEditedInfo, onSave, onCancel, fileInputRef, h
         </div>
 
         {/* Action Buttons */}
-        <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+        <div className="flex justify-end gap-2 sm:gap-3 pt-2 sm:pt-4 border-t border-gray-200">
           <button
             onClick={onCancel}
-            className="px-6 py-2.5 text-gray-600 hover:text-gray-700 bg-gray-100 
-              hover:bg-gray-200 rounded-lg transition-all duration-300 text-sm font-medium 
+            className="px-4 py-2 sm:px-6 sm:py-2.5 text-gray-600 hover:text-gray-700 bg-gray-100 
+              hover:bg-gray-200 rounded-lg transition-all duration-300 text-xs sm:text-sm font-medium 
               cursor-pointer hover:shadow-sm active:scale-95 flex items-center gap-2 
               group"
+            disabled={isUploading}
           >
-            <FaTimes className="text-sm group-hover:rotate-90 transition-transform duration-300" />
+            <FaTimes className="text-xs sm:text-sm group-hover:rotate-90 transition-transform duration-300" />
             Cancel
           </button>
           <button
-            onClick={onSave}
-            disabled={isOverLimit}
-            className={`px-6 py-2.5 text-white rounded-lg text-sm font-medium 
+            onClick={handleSaveClick}
+            disabled={isOverLimit || isUploading}
+            className={`px-4 py-2 sm:px-6 sm:py-2.5 text-white rounded-lg text-xs sm:text-sm font-medium 
               cursor-pointer transition-all duration-300 hover:shadow-md active:scale-95 
               flex items-center gap-2 group
-              ${isOverLimit 
+              ${isOverLimit || isUploading
                 ? 'bg-gray-400 cursor-not-allowed' 
                 : 'bg-cyan-500 hover:bg-cyan-600'
               }`}
           >
-            <FaSave className="text-sm group-hover:scale-110 transition-transform duration-300" />
-            Save Changes
+            {isUploading ? (
+              <span className="flex items-center">
+                <span className="inline-block w-4 h-4 border-2 border-white border-t-cyan-500 rounded-full animate-spin mr-2"></span>
+                Saving...
+              </span>
+            ) : (
+              <>
+                <FaSave className="text-xs sm:text-sm group-hover:scale-110 transition-transform duration-300" />
+                Save Changes
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -429,7 +456,7 @@ const MyInfo = () => {
     try {
       const response = await axios({
         method: 'delete',
-        url: 'https://localhost:7018/api/Auth/DeleteUserImage',
+        url: 'https://learnify.runasp.net/api/Auth/DeleteUserImage',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -459,6 +486,7 @@ const MyInfo = () => {
       return;
     }
 
+    setIsUploading(true);
     try {
       const formData = new FormData();
       
@@ -478,13 +506,17 @@ const MyInfo = () => {
 
       const response = await axios({
         method: 'put',
-        url: 'https://localhost:7018/api/Auth/UpdateUser',
+        url: 'https://learnify.runasp.net/api/Auth/UpdateUser',
         data: formData,
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'multipart/form-data'
         }
       });
+      console.log(response);
+      if (response.status === 400) {
+        showToast.error(response.data.message);
+      }
 
       if (response.status === 200) {
         // Update Redux store
@@ -520,7 +552,10 @@ const MyInfo = () => {
         setIsEditing(false);
         setError("");
         showToast.success("Profile updated successfully!");
+        setIsUploading(false);
+        return;
       }
+      setIsUploading(false);
     } catch (error) {
       console.error('Update error:', error);
       
@@ -529,13 +564,11 @@ const MyInfo = () => {
                          error.response.data?.title ||
                          "Failed to update profile. Please check your input.";
         showToast.error(errorMessage);
-      } else if (error.request) {
-        showToast.error("No response from server. Please check your connection.");
-      } else {
-        showToast.error("Failed to send request. Please try again.");
+      
       }
       
       setError(error.response?.data?.message || "Failed to update profile. Please try again.");
+      setIsUploading(false);
     }
   };
 
@@ -570,6 +603,7 @@ const MyInfo = () => {
           fileInputRef={fileInputRef}
           handleImageUpload={handleImageUpload}
           onDeleteImage={handleDeleteImage}
+          isUploading={isUploading}
         />
       </EditOverlay>
 
@@ -580,7 +614,7 @@ const MyInfo = () => {
         />
       )}
       
-      <div className="w-full max-w-7xl mx-auto p-4 sm:p-6">
+      <div className="w-full max-w-7xl mx-auto p-4 sm:p-6 animate-profile-fade-in">
         <div className="bg-gradient-to-r from-gray-50 to-white rounded-2xl shadow-lg overflow-hidden">
           {/* Cover Area */}
           <div className="relative h-48 sm:h-56">
@@ -593,7 +627,7 @@ const MyInfo = () => {
             <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-transparent"></div>
 
             {/* Profile Picture */}
-            <div className="absolute -bottom-12 sm:-bottom-16 left-4 sm:left-8">
+            <div className="absolute -bottom-8 sm:-bottom-16 left-2 sm:left-8">
               <div 
                 className="relative group"
                 onMouseEnter={() => setShowTooltip(true)}
@@ -604,11 +638,11 @@ const MyInfo = () => {
                     src={editedInfo.avatarUrl || userInfo.avatarUrl}
                     alt="Profile"
                     onClick={handleImageClick}
-                    className="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl border-4 border-white shadow-xl object-cover transform transition-all duration-300 hover:scale-105 cursor-pointer"
+                    className="w-20 h-20 sm:w-32 sm:h-32 rounded-2xl border-4 border-white shadow-xl object-cover transform transition-all duration-300 hover:scale-105 cursor-pointer"
                   />
                 ) : (
-                  <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl border-4 border-white shadow-xl bg-gray-100 flex items-center justify-center group-hover:bg-gray-200 transition-colors duration-300 cursor-pointer">
-                    <FaUserCircle className="text-5xl sm:text-6xl text-gray-400 group-hover:text-gray-500 transition-colors duration-300" />
+                  <div className="w-20 h-20 sm:w-32 sm:h-32 rounded-2xl border-4 border-white shadow-xl bg-gray-100 flex items-center justify-center group-hover:bg-gray-200 transition-colors duration-300 cursor-pointer">
+                    <FaUserCircle className="text-4xl sm:text-6xl text-gray-400 group-hover:text-gray-500 transition-colors duration-300" />
                   </div>
                 )}
 
@@ -631,8 +665,8 @@ const MyInfo = () => {
             </div>
 
             {/* User Name Area */}
-            <div className="absolute bottom-4 sm:bottom-6 left-36 sm:left-44 right-16 sm:right-4">
-              <h1 className="text-xl sm:text-3xl font-bold text-white drop-shadow-md truncate pr-2">
+            <div className="absolute bottom-2 sm:bottom-6 left-24 sm:left-44 right-4 sm:right-4">
+              <h1 className="text-lg sm:text-3xl font-bold text-white drop-shadow-md truncate pr-2">
                 {userInfo.fullName}
               </h1>
             </div>
@@ -640,10 +674,10 @@ const MyInfo = () => {
             {/* Edit Button */}
             <button
               onClick={() => setIsEditing(true)}
-              className="absolute top-4 right-4 flex items-center gap-2 px-3 sm:px-4 py-2 
+              className="absolute top-2 right-2 sm:top-4 sm:right-4 flex items-center gap-2 px-2 sm:px-4 py-1.5 sm:py-2 
                 bg-white/90 hover:bg-white text-gray-800 rounded-lg transition-all duration-300 
                 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:scale-95 
-                cursor-pointer group"
+                cursor-pointer group text-xs sm:text-sm"
             >
               <FaPen className="text-xs sm:text-sm group-hover:rotate-12 transition-transform duration-300" />
               <span className="text-xs sm:text-sm font-medium hidden sm:inline 
@@ -746,5 +780,20 @@ const styles = `
 const styleSheet = document.createElement("style");
 styleSheet.innerText = styles;
 document.head.appendChild(styleSheet);
+
+// Add fade-in and upward movement animation for the page
+if (typeof document !== 'undefined') {
+  const styleSheet = document.createElement("style");
+  styleSheet.innerText += `
+    @keyframes profileFadeIn {
+      from { opacity: 0; transform: translateY(32px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-profile-fade-in {
+      animation: profileFadeIn 0.8s cubic-bezier(0.4,0,0.2,1);
+    }
+  `;
+  document.head.appendChild(styleSheet);
+}
 
 export default MyInfo;

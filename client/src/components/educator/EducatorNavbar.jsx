@@ -137,17 +137,15 @@ const EducatorNavbar = () => {
   );
 
   const MenuItemContent = ({ item }) => (
-    <div className="flex items-center gap-3 flex-1 min-w-0">
-      <span className="w-10 h-10 flex items-center justify-center rounded-lg 
+    <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0 py-0 md:py-2">
+      <span className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-lg 
         bg-gray-50 group-hover:bg-white transition-colors shadow-sm
         group-hover:shadow-md group-hover:scale-105 transform duration-200">
         {item.icon}
       </span>
       <div>
-        <p className={`text-sm font-medium ${item.className || 'text-gray-700'}`}>
-          {item.label}
-        </p>
-        <p className="text-xs text-gray-500">{item.description}</p>
+        <p className={`text-xs md:text-sm font-medium ${item.className || 'text-gray-700'}`}>{item.label}</p>
+        <p className="text-xs text-gray-500 hidden md:block">{item.description}</p>
       </div>
     </div>
   );
@@ -200,37 +198,37 @@ const EducatorNavbar = () => {
         </div>
 
         {isAuthenticated ? (
-          <Menu as="div" className="relative z-[9999]">
+          <Menu as="div" className="relative">
             {({ open }) => (
               <>
                 <Menu.Button
-              className={`
-                flex items-center gap-3 p-2.5 rounded-xl 
-                transition-all duration-300 
-                border border-transparent
+                  className={`
+                    flex items-center gap-3 p-2.5 rounded-xl 
+                    transition-all duration-300 
+                    border border-transparent
                     cursor-pointer outline-none focus:outline-none
                     ${open ? 
-                  'bg-blue-50 border-blue-200 shadow-inner' : 
-                  'hover:bg-white/80 hover:border-gray-200 hover:shadow-lg hover:-translate-y-0.5'
-                }
-              `}
-            >
-              <UserAvatar />
-              <span className={`
-                font-medium transition-colors duration-300 
+                      'bg-blue-50 border-blue-200 shadow-inner' : 
+                      'hover:bg-white/80 hover:border-gray-200 hover:shadow-lg hover:-translate-y-0.5'
+                    }
+                  `}
+                >
+                  <UserAvatar />
+                  <span className={`
+                    font-medium transition-colors duration-300 
                     ${open ? 'text-blue-600' : 'text-gray-700'}
-              `}>
-                {user?.name}
-              </span>
-              <IoMdArrowDropdown 
-                className={`
-                  transition-all duration-300 
+                  `}>
+                    {user?.name}
+                  </span>
+                  <IoMdArrowDropdown 
+                    className={`
+                      transition-all duration-300 
                       ${open ? 'rotate-180 text-blue-600' : 'text-gray-500'}
-                `} 
-                size={20}
-              />
+                    `} 
+                    size={20}
+                  />
                 </Menu.Button>
-            
+
                 <Transition
                   as={Fragment}
                   enter="transition ease-out duration-200"
@@ -240,11 +238,11 @@ const EducatorNavbar = () => {
                   leaveFrom="transform opacity-100 scale-100"
                   leaveTo="transform opacity-0 scale-95"
                 >
-                  <Menu.Items className="absolute right-0 mt-2 w-80 origin-top-right rounded-xl bg-white shadow-2xl py-3 border border-gray-200/80 z-[9999] focus:outline-none ring-0">
-                    <div className="px-4 py-3 border-b border-gray-100">
-                      <div className="flex items-center gap-4 mb-3">
+                  <Menu.Items className={`absolute right-0 mt-2 w-80 origin-top-right rounded-xl bg-white shadow-2xl py-1 md:py-3 border border-gray-200/80 focus:outline-none ring-0 ${open ? 'z-[9999]' : 'z-[997]'}`}>
+                    <div className="px-2 py-1 md:px-4 md:py-3 border-b border-gray-100">
+                      <div className="flex items-center gap-1 md:gap-4 mb-1 md:mb-3">
                         <div className="relative flex-shrink-0">
-                          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-50 to-white
+                          <div className="w-10 h-10 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-blue-50 to-white
                             shadow-inner flex items-center justify-center overflow-hidden">
                             {user?.image_url ? (
                               <img 
@@ -263,7 +261,7 @@ const EducatorNavbar = () => {
                           <p className="text-base font-semibold text-gray-900 truncate">
                             {user?.name}
                           </p>
-                          <p className="text-sm text-gray-500 truncate">
+                          <p className="text-[10px] md:text-sm text-gray-500 truncate break-all max-w-[120px] md:max-w-none">
                             {user?.email}
                           </p>
                         </div>
@@ -272,16 +270,16 @@ const EducatorNavbar = () => {
                         rounded-lg px-3 py-2 text-center shadow-inner">
                         Instructor Account
                       </div>
-                </div>
+                    </div>
 
-                    <div className="py-2">
+                    <div className="py-1">
                       {getMenuItems().map((item, index) => (
                         <Menu.Item key={index}>
                           {({ active }) => (
                             item.path ? (
                               <Link
                                 to={item.path}
-                                className={`flex items-center px-4 py-3 ${
+                                className={`flex items-center px-4 py-0 ${
                                   active ? 'bg-gray-50' : ''
                                 } cursor-pointer group transition-colors duration-150 outline-none focus:outline-none`}
                               >
@@ -290,7 +288,7 @@ const EducatorNavbar = () => {
                             ) : (
                               <button
                                 onClick={item.onClick}
-                                className={`w-full flex items-center px-4 py-3 ${
+                                className={`w-full flex items-center px-4 py-0 ${
                                   active ? 'bg-gray-50' : ''
                                 } cursor-pointer group transition-colors duration-150 outline-none focus:outline-none`}
                               >
@@ -300,7 +298,7 @@ const EducatorNavbar = () => {
                           )}
                         </Menu.Item>
                       ))}
-          </div>
+                    </div>
                   </Menu.Items>
                 </Transition>
               </>
@@ -366,30 +364,30 @@ const EducatorNavbar = () => {
               </Link>
             </div>
 
-            <Menu as="div" className="relative z-[9999]">
+            <Menu as="div" className="relative">
               {({ open }) => (
                 <>
                   <Menu.Button
-                className={`
-                  flex items-center gap-2 p-1.5 sm:p-2 rounded-xl
-                  transition-all duration-300 border border-transparent
+                    className={`
+                      flex items-center gap-2 p-1.5 sm:p-2 rounded-xl
+                      transition-all duration-300 border border-transparent
                       cursor-pointer outline-none focus:outline-none
                       ${open ? 
-                    'bg-blue-50 border-blue-200 scale-95' : 
-                    'hover:bg-white/50 active:scale-95'
-                  }
-                `}
-              >
-                <UserAvatar size="small" />
-                <IoMdArrowDropdown 
-                  className={`
-                    transition-all duration-300 
+                        'bg-blue-50 border-blue-200 scale-95' : 
+                        'hover:bg-white/50 active:scale-95'
+                      }
+                    `}
+                  >
+                    <UserAvatar size="small" />
+                    <IoMdArrowDropdown 
+                      className={`
+                        transition-all duration-300 
                         ${open ? 'rotate-180 text-blue-600' : 'text-gray-500'}
-                  `}
-                  size={18}
-                />
+                      `}
+                      size={18}
+                    />
                   </Menu.Button>
-              
+
                   <Transition
                     as={Fragment}
                     enter="transition ease-out duration-200"
@@ -399,11 +397,11 @@ const EducatorNavbar = () => {
                     leaveFrom="transform opacity-100 scale-100"
                     leaveTo="transform opacity-0 scale-95"
                   >
-                    <Menu.Items className="fixed right-3 top-[74px] w-[55%] max-h-[80vh] rounded-xl bg-white shadow-2xl py-3 border border-gray-200/80 z-[9999] focus:outline-none ring-0">
-                      <div className="px-4 py-3 border-b border-gray-100">
-                        <div className="flex items-center gap-4 mb-3">
+                    <Menu.Items className={`fixed right-3 top-[74px] w-[55%] max-h-[70vh] rounded-xl bg-white shadow-2xl py-2 border border-gray-200/80 focus:outline-none ring-0 ${open ? 'z-[9999]' : 'z-[997]'}`}>
+                      <div className="px-4 py-0 border-b border-gray-100">
+                        <div className="flex items-center gap-4 mb-1">
                           <div className="relative flex-shrink-0">
-                            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-50 to-white
+                            <div className="w-10 h-10 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-blue-50 to-white
                               shadow-inner flex items-center justify-center overflow-hidden">
                               {user?.image_url ? (
                                 <img 
@@ -422,10 +420,11 @@ const EducatorNavbar = () => {
                             <p className="text-base font-semibold text-gray-900 truncate">
                               {user?.name}
                             </p>
-                            <p className="text-sm text-gray-500 truncate">
+                            <p className="text-[10px] md:text-sm text-gray-500 truncate break-all max-w-[120px] md:max-w-none">
                               {user?.email}
                             </p>
                           </div>
+
                         </div>
                         <div className="text-xs font-medium text-gray-500 bg-gray-50/80 
                           rounded-lg px-3 py-2 text-center shadow-inner">
@@ -433,14 +432,14 @@ const EducatorNavbar = () => {
                         </div>
                       </div>
 
-                      <div className="py-2">
+                      <div className="py-1">
                         {getMenuItems().map((item, index) => (
                           <Menu.Item key={index}>
                             {({ active }) => (
                               item.path ? (
                                 <Link
                                   to={item.path}
-                                  className={`flex items-center px-4 py-3 ${
+                                  className={`flex items-center px-4 py-0 ${
                                     active ? 'bg-gray-50' : ''
                                   } cursor-pointer group transition-colors duration-150 outline-none focus:outline-none`}
                                 >
@@ -449,7 +448,7 @@ const EducatorNavbar = () => {
                               ) : (
                                 <button
                                   onClick={item.onClick}
-                                  className={`w-full flex items-center px-4 py-3 ${
+                                  className={`w-full flex items-center px-4 py-0 ${
                                     active ? 'bg-gray-50' : ''
                                   } cursor-pointer group transition-colors duration-150 outline-none focus:outline-none`}
                                 >
@@ -459,45 +458,45 @@ const EducatorNavbar = () => {
                             )}
                           </Menu.Item>
                         ))}
-                              </div>
+                      </div>
                     </Menu.Items>
                   </Transition>
                 </>
               )}
             </Menu>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2 sm:gap-3">
-                              <Link
-                                to="/log-in"
-                                className="relative inline-flex items-center justify-center text-sm font-medium 
-                                  text-gray-800 px-4 py-1.5 rounded-lg overflow-hidden group border
-                                  border-transparent hover:border-blue-200"
-                              >
-                                <span className="absolute inset-0 flex items-center justify-center w-full h-full 
-                                  text-white duration-300 -translate-x-full bg-blue-600 group-hover:translate-x-0 
-                                  ease">
-                                  Login
-                                </span>
-                                <span className="absolute flex items-center justify-center w-full h-full 
-                                  transition-all duration-300 transform group-hover:translate-x-full ease">
-                                  Login
-                                </span>
-                                <span className="relative invisible">Login</span>
-                              </Link>
-                              <Link
-                                to="/signup"
-                                className="relative inline-flex items-center justify-center text-sm font-medium 
-                                  bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-1.5 rounded-lg
-                                  transition-all duration-300 hover:opacity-90 active:scale-95"
-                              >
-                                Sign Up
-                              </Link>
-                            </div>
-                          )}
-                        </div>
-                      </header>
-                    );
-                };
-                
-                export default EducatorNavbar;
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link
+              to="/log-in"
+              className="relative inline-flex items-center justify-center text-sm font-medium 
+                text-gray-800 px-4 py-1.5 rounded-lg overflow-hidden group border
+                border-transparent hover:border-blue-200"
+            >
+              <span className="absolute inset-0 flex items-center justify-center w-full h-full 
+                text-white duration-300 -translate-x-full bg-blue-600 group-hover:translate-x-0 
+                ease">
+                Login
+              </span>
+              <span className="absolute flex items-center justify-center w-full h-full 
+                transition-all duration-300 transform group-hover:translate-x-full ease">
+                Login
+              </span>
+              <span className="relative invisible">Login</span>
+            </Link>
+            <Link
+              to="/signup"
+              className="relative inline-flex items-center justify-center text-sm font-medium 
+                bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-1.5 rounded-lg
+                transition-all duration-300 hover:opacity-90 active:scale-95"
+            >
+              Sign Up
+            </Link>
+          </div>
+        )}
+      </div>
+    </header>
+  );
+};
+
+export default EducatorNavbar;

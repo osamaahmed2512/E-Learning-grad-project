@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { DollarSign, Users, BookOpen, Clock, AlertCircle, Activity } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import axios from 'axios';
@@ -36,6 +36,7 @@ const AdminDashboard = () => {
   const [adminsCount, setAdminsCount] = useState(0);
   const [inactiveUsersCount, setInactiveUsersCount] = useState(0);
   const currency = "$";
+  const [displayedMonthlyRevenue, setDisplayedMonthlyRevenue] = useState([]);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -43,40 +44,40 @@ const AdminDashboard = () => {
         const token = localStorage.getItem('token');
         const headers = { Authorization: `Bearer ${token}` };
         // Fetch support tickets count
-        const supportRes = await axios.get('https://localhost:7018/api/ContactUs/count', { headers });
+        const supportRes = await axios.get('https://learnify.runasp.net/api/ContactUs/count', { headers });
         const totalSupportTickets = supportRes.data?.count ?? 0;
         // Fetch total enrollments count
-        const enrollmentsRes = await axios.get('https://localhost:7018/api/Subscription/countofallenrollement', { headers });
+        const enrollmentsRes = await axios.get('https://learnify.runasp.net/api/Subscription/countofallenrollement', { headers });
         const totalEnrollments = enrollmentsRes.data?.count ?? 0;
         // Fetch total revenue
-        const revenueRes = await axios.get('https://localhost:7018/api/Payment/getTotalRevenue', { headers });
+        const revenueRes = await axios.get('https://learnify.runasp.net/api/Payment/getTotalRevenue', { headers });
         const totalRevenue = revenueRes.data?.total_revenue ?? 0;
         // Fetch total payments
-        const paymentsRes = await axios.get('https://localhost:7018/api/Payment/getTotalPAymet', { headers });
+        const paymentsRes = await axios.get('https://learnify.runasp.net/api/Payment/getTotalPAymet', { headers });
         const totalPayments = paymentsRes.data?.total_payment ?? 0;
         // Fetch total courses count
-        const coursesRes = await axios.get('https://localhost:7018/api/Course/courseCount', { headers });
+        const coursesRes = await axios.get('https://learnify.runasp.net/api/Course/courseCount', { headers });
         const totalCourses = coursesRes.data?.count ?? 0;
         // Fetch total users count from new API
-        const usersCountRes = await axios.get('https://localhost:7018/api/Auth/GetallCountofusers', { headers });
+        const usersCountRes = await axios.get('https://learnify.runasp.net/api/Auth/GetallCountofusers', { headers });
         setUsersCount(usersCountRes.data ?? 0);
         // Fetch pending teachers count
-        const pendingTeachersRes = await axios.get('https://localhost:7018/api/Auth/GetallCountofusers', {
+        const pendingTeachersRes = await axios.get('https://learnify.runasp.net/api/Auth/GetallCountofusers', {
           params: { Role: 'teacher', IsActive: false }, headers
         });
         setPendingTeachersCount(pendingTeachersRes.data ?? 0);
         // Fetch students, teachers, admins count
-        const studentsRes = await axios.get('https://localhost:7018/api/Auth/GetallCountofusers', { params: { Role: 'student' }, headers });
+        const studentsRes = await axios.get('https://learnify.runasp.net/api/Auth/GetallCountofusers', { params: { Role: 'student' }, headers });
         setStudentsCount(studentsRes.data ?? 0);
-        const teachersRes = await axios.get('https://localhost:7018/api/Auth/GetallCountofusers', { params: { Role: 'teacher' }, headers });
+        const teachersRes = await axios.get('https://learnify.runasp.net/api/Auth/GetallCountofusers', { params: { Role: 'teacher' }, headers });
         setTeachersCount(teachersRes.data ?? 0);
-        const adminsRes = await axios.get('https://localhost:7018/api/Auth/GetallCountofusers', { params: { Role: 'admin' }, headers });
+        const adminsRes = await axios.get('https://learnify.runasp.net/api/Auth/GetallCountofusers', { params: { Role: 'admin' }, headers });
         setAdminsCount(adminsRes.data ?? 0);
         // Fetch inactive users count
-        const inactiveUsersRes = await axios.get('https://localhost:7018/api/Auth/GetallCountofusers', { params: { IsActive: false }, headers });
+        const inactiveUsersRes = await axios.get('https://learnify.runasp.net/api/Auth/GetallCountofusers', { params: { IsActive: false }, headers });
         setInactiveUsersCount(inactiveUsersRes.data ?? 0);
         // Fetch payments for monthly revenue graph
-        const paymentsApiRes = await axios.get('https://localhost:7018/api/Payment/payments', {
+        const paymentsApiRes = await axios.get('https://learnify.runasp.net/api/Payment/payments', {
           params: { page: 1, pageSize: 1000 },
           headers
         });
@@ -135,6 +136,21 @@ const AdminDashboard = () => {
     };
     fetchDashboardData();
   }, []);
+
+  // Responsive: show only last 4 months on mobile, all 12 on desktop
+  useEffect(() => {
+    if (!dashboardData || !dashboardData.monthlyRevenue) return;
+    const updateDisplayed = () => {
+      if (window.innerWidth < 640) {
+        setDisplayedMonthlyRevenue(dashboardData.monthlyRevenue.slice(-4));
+      } else {
+        setDisplayedMonthlyRevenue(dashboardData.monthlyRevenue);
+      }
+    };
+    updateDisplayed();
+    window.addEventListener('resize', updateDisplayed);
+    return () => window.removeEventListener('resize', updateDisplayed);
+  }, [dashboardData]);
 
   return dashboardData ? (
     <div className="w-full">
@@ -233,7 +249,7 @@ const AdminDashboard = () => {
             </h3>
             <div className="h-[250px] sm:h-[300px] lg:h-[400px] w-full">
               <ResponsiveContainer>
-                <BarChart data={dashboardData.monthlyRevenue}>
+                <BarChart data={displayedMonthlyRevenue}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                   <XAxis 
                     dataKey="name"

@@ -212,21 +212,21 @@ namespace GraduationProject
 
 
 
-            app.UseDeveloperExceptionPage();
-            app.UseSwagger();
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "GraduationProject API v1");
-                c.RoutePrefix = string.Empty;
-            });
-
-            //if (app.Environment.IsDevelopment())
+            //app.UseDeveloperExceptionPage();
+            //app.UseSwagger();
+            //app.UseSwaggerUI(c =>
             //{
-            //    app.UseDeveloperExceptionPage();
-            //    app.UseSwagger();
-            //    app.UseSwaggerUI();
+            //    c.SwaggerEndpoint("/swagger/v1/swagger.json", "GraduationProject API v1");
+            //    c.RoutePrefix = string.Empty;
+            //});
 
-            //}
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+                app.UseSwagger();
+                app.UseSwaggerUI();
+
+            }
 
 
 
@@ -235,7 +235,7 @@ namespace GraduationProject
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseAuthorization();
-          
+
 
             app.MapControllers();
 

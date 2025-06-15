@@ -1,9 +1,41 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
+import api from '../api';
 
-export const TodoContext = createContext(null);
+// Valid status values as per backend
+const VALID_STATUSES = ['todo', 'progress', 'completed'];
 
-export const useTodo = () => {
+// Mapping between frontend and backend status values
+const mapStatusToBackend = (status) => {
+    const statusMap = {
+        'todo': 'todo',
+        'doing': 'progress',
+        'done': 'completed'
+    };
+    return statusMap[status] || status;
+};
+
+const mapStatusToFrontend = (status) => {
+    const statusMap = {
+        'todo': 'todo',
+        'progress': 'doing',
+        'completed': 'done'
+    };
+    return statusMap[status] || status;
+};
+
+const mapBackendToFrontend = (backendTask) => ({
+    id: backendTask.id,
+    title: backendTask.title,
+    status: mapStatusToFrontend(backendTask.status),
+    createdAt: backendTask.created_at,
+    updatedAt: backendTask.updated_at,
+    userId: backendTask.user_id
+});
+
+const TodoContext = createContext(null);
+
+const useTodo = () => {
     const context = useContext(TodoContext);
     if (!context) {
         console.warn('useTodo: Context not found, returning default values');
@@ -23,150 +55,236 @@ export const useTodo = () => {
     return context;
 };
 
-export const TodoProvider = ({ children }) => {
-    // Initialize state with a try-catch block
+const TodoProvider = ({ children }) => {
     const [initialized, setInitialized] = useState(false);
     const [tasks, setTasks] = useState([]);
+    const [error, setError] = useState(null);
+    const [lastUpdate, setLastUpdate] = useState(Date.now());
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-    // Load todos from localStorage
-    useEffect(() => {
-        try {
-            const savedTodos = localStorage.getItem("todos");
-            if (savedTodos) {
-                setTasks(JSON.parse(savedTodos));
-            }
-            // Always remove the old 'tasks' key if it exists
-            if (localStorage.getItem("tasks")) {
-                localStorage.removeItem("tasks");
-            }
-            setInitialized(true);
-        } catch (error) {
-            console.error("Error loading todos from localStorage:", error);
-            setTasks([]);
-            setInitialized(true);
-        }
+    // Check if user has access to todos
+    const hasTodoAccess = useCallback(() => {
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        return user.role?.toLowerCase() === 'student' || user.role?.toLowerCase() === 'teacher';
     }, []);
 
-    // Save todos to localStorage
+    // Initial auth check and fetch
     useEffect(() => {
-        if (initialized) {
-            try {
-                localStorage.setItem("todos", JSON.stringify(tasks));
-            } catch (error) {
-                console.error("Error saving todos to localStorage:", error);
+        const checkAuthAndFetch = async () => {
+            const token = localStorage.getItem('token');
+            const isAuth = !!token;
+            setIsAuthenticated(isAuth);
+            
+            if (isAuth && hasTodoAccess()) {
+                await fetchTodos();
+            } else {
+                setTasks([]);
+            }
+            setInitialized(true);
+        };
+
+        checkAuthAndFetch();
+    }, [hasTodoAccess]);
+
+    const fetchTodos = useCallback(async () => {
+        let isMounted = true;
+        
+        const token = localStorage.getItem('token');
+        if (!token || !hasTodoAccess()) {
+            if (isMounted) {
+                setTasks([]);
+                setInitialized(true);
+                setIsAuthenticated(false);
+            }
+            return;
+        }
+
+        try {
+            const response = await api.get('/ToDo');
+            if (isMounted) {
+                const mappedTasks = Array.isArray(response.data) 
+                    ? response.data.map(mapBackendToFrontend)
+                    : [];
+                setTasks(mappedTasks);
+                setInitialized(true);
+                setIsAuthenticated(true);
+            }
+        } catch (error) {
+            if (error.response?.status === 403) {
+                // Silently handle 403 - user doesn't have access
+                if (isMounted) {
+                    setTasks([]);
+                    setInitialized(true);
+                }
+            } else if (error.response?.status !== 401) {
+                console.error("Error fetching todos:", error);
+                if (isMounted) {
+                    setError(error.message);
+                }
+            }
+            if (isMounted) {
+                setInitialized(true);
+                setIsAuthenticated(false);
             }
         }
-    }, [tasks, initialized]);
 
-    const handleAddTask = useCallback((taskData) => {
+        return () => {
+            isMounted = false;
+        };
+    }, [hasTodoAccess]);
+
+    // Listen for auth state changes
+    useEffect(() => {
+        const handleAuthChange = async (e) => {
+            const token = localStorage.getItem('token');
+            const isAuth = !!token;
+            
+            if (isAuth !== isAuthenticated) {
+                setIsAuthenticated(isAuth);
+                if (isAuth && hasTodoAccess()) {
+                    await fetchTodos();
+                } else {
+                    setTasks([]);
+                }
+            }
+        };
+
+        // Check auth state periodically
+        const intervalId = setInterval(handleAuthChange, 1000);
+
+        // Also check on storage changes
+        window.addEventListener('storage', handleAuthChange);
+        
+        return () => {
+            clearInterval(intervalId);
+            window.removeEventListener('storage', handleAuthChange);
+        };
+    }, [isAuthenticated, fetchTodos, hasTodoAccess]);
+
+    const handleAddTask = useCallback(async (taskData) => {
+        if (!hasTodoAccess()) {
+            setError("You don't have permission to manage todos");
+            return;
+        }
+
         try {
-            const newTask = {
-                ...taskData,
-                id: Date.now(),
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                status: taskData.status || 'todo'
-            };
-            setTasks(prev => [...prev, newTask]);
+            await api.post('/ToDo', {
+                title: taskData.title,
+                status: mapStatusToBackend(taskData.status)
+            });
+            await fetchTodos();
+            setLastUpdate(Date.now());
         } catch (error) {
             console.error("Error adding task:", error);
+            setError(error.message);
+            throw error;
         }
-    }, []);
+    }, [fetchTodos, hasTodoAccess]);
 
-    const handleDeleteTask = useCallback((taskId) => {
+    const handleDeleteTask = useCallback(async (taskId) => {
         try {
-            setTasks(currentTasks => 
-                currentTasks.filter(task => task.id !== taskId)
-            );
+            await api.delete(`/ToDo/${taskId}`);
+            await fetchTodos();
+            setLastUpdate(Date.now());
         } catch (error) {
             console.error("Error deleting task:", error);
+            await fetchTodos();
+            setError(error.message);
+            throw error;
         }
-    }, []);
+    }, [fetchTodos]);
 
-    const handleUpdateTaskStatus = useCallback((taskId, newStatus) => {
+    const handleUpdateTaskStatus = useCallback(async (taskId, newStatus) => {
         try {
-            setTasks(currentTasks =>
-                currentTasks.map(task =>
-                    task.id === taskId
-                        ? {
-                            ...task,
-                            status: newStatus,
-                            updatedAt: new Date().toISOString()
-                        }
-                        : task
-                )
-            );
+            const existingTask = tasks.find(t => t.id === taskId);
+            if (!existingTask) {
+                throw new Error('Task not found');
+            }
+
+            const backendStatus = mapStatusToBackend(newStatus);
+
+            const payload = {
+                id: existingTask.id,
+                title: existingTask.title,
+                status: backendStatus
+            };
+
+            await api.put('/ToDo', payload);
+            await fetchTodos();
+            setLastUpdate(Date.now());
         } catch (error) {
             console.error("Error updating task status:", error);
+            await fetchTodos();
+            setError(error.message);
+            throw error;
         }
-    }, []);
+    }, [tasks, fetchTodos]);
 
-    const moveTask = useCallback((taskId, direction) => {
+    const moveTask = useCallback(async (taskId, direction) => {
         try {
-            const statusOrder = ['todo', 'doing', 'done'];
-            
-            setTasks(currentTasks =>
-                currentTasks.map(task => {
-                    if (task.id === taskId) {
-                        const currentIndex = statusOrder.indexOf(task.status);
-                        let newIndex;
+            const statusOrder = VALID_STATUSES;
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) {
+                throw new Error('Task not found');
+            }
 
-                        if (direction === 'forward' && currentIndex < statusOrder.length - 1) {
-                            newIndex = currentIndex + 1;
-                        } else if (direction === 'backward' && currentIndex > 0) {
-                            newIndex = currentIndex - 1;
-                        } else {
-                            return task;
-                        }
+            const currentStatus = mapStatusToBackend(task.status);
+            const currentIndex = statusOrder.indexOf(currentStatus);
+            let newIndex;
 
-                        return {
-                            ...task,
-                            status: statusOrder[newIndex],
-                            updatedAt: new Date().toISOString()
-                        };
-                    }
-                    return task;
-                })
-            );
-        } catch (error) {
-            console.error("Error moving task:", error);
-        }
-    }, []);
-
-    const handleDragEnd = useCallback((result) => {
-        try {
-            const { destination, source, draggableId } = result;
-
-            if (!destination) return;
-
-            if (
-                destination.droppableId === source.droppableId &&
-                destination.index === source.index
-            ) {
+            if (direction === 'forward' && currentIndex < statusOrder.length - 1) {
+                newIndex = currentIndex + 1;
+            } else if (direction === 'backward' && currentIndex > 0) {
+                newIndex = currentIndex - 1;
+            } else {
                 return;
             }
 
-            setTasks(currentTasks => {
-                const updatedTasks = Array.from(currentTasks);
-                const task = updatedTasks.find(t => t.id === Number(draggableId));
-                
-                if (task) {
-                    task.status = destination.droppableId;
-                    task.updatedAt = new Date().toISOString();
-                }
+            const newStatus = statusOrder[newIndex];
+            await handleUpdateTaskStatus(taskId, mapStatusToFrontend(newStatus));
+        } catch (error) {
+            console.error("Error moving task:", error);
+            setError(error.message);
+            throw error;
+        }
+    }, [tasks, handleUpdateTaskStatus]);
 
-                if (destination.droppableId === source.droppableId) {
-                    const columnTasks = updatedTasks.filter(t => t.status === source.droppableId);
-                    const [movedTask] = columnTasks.splice(source.index, 1);
-                    columnTasks.splice(destination.index, 0, movedTask);
-                }
+    const handleDragEnd = useCallback(async (result) => {
+        const { destination, source, draggableId } = result;
 
+        if (!destination) return;
+
+        if (
+            destination.droppableId === source.droppableId &&
+            destination.index === source.index
+        ) {
+            return;
+        }
+
+        try {
+            // Optimistic update
+            setTasks(prevTasks => {
+                const updatedTasks = prevTasks.map(task =>
+                    task.id === Number(draggableId)
+                        ? { ...task, status: mapStatusToFrontend(destination.droppableId) }
+                        : task
+                );
+                console.log('Updated tasks after drag:', updatedTasks);
                 return updatedTasks;
             });
+
+            // Update the backend using handleUpdateTaskStatus
+            const taskId = Number(draggableId);
+            const newStatus = destination.droppableId;
+            await handleUpdateTaskStatus(taskId, mapStatusToFrontend(newStatus));
+            
+            setLastUpdate(Date.now()); // Trigger re-render
         } catch (error) {
             console.error("Error handling drag end:", error);
+            await fetchTodos(); // Revert on error
+            setError(error.message);
         }
-    }, []);
+    }, [handleUpdateTaskStatus, fetchTodos]);
 
     const getTasksByStatus = useCallback((status) => {
         try {
@@ -189,20 +307,20 @@ export const TodoProvider = ({ children }) => {
         }
     }, [getTasksByStatus]);
 
-    const clearCompletedTasks = useCallback(() => {
+    const clearCompletedTasks = useCallback(async () => {
         try {
-            setTasks(currentTasks => 
-                currentTasks.filter(task => task.status !== 'done')
+            const completedTasks = tasks.filter(task => task.status === 'done');
+            
+            await Promise.all(
+                completedTasks.map(task => handleDeleteTask(task.id))
             );
+
+            setTasks(currentTasks => currentTasks.filter(task => task.status !== 'done'));
         } catch (error) {
             console.error("Error clearing completed tasks:", error);
+            setError(error.message);
         }
-    }, []);
-
-    // Don't render anything until initialization is complete
-    if (!initialized) {
-        return null;
-    }
+    }, [tasks, handleDeleteTask]);
 
     const value = {
         tasks,
@@ -214,8 +332,17 @@ export const TodoProvider = ({ children }) => {
         getTasksByStatus,
         getSortedTasks,
         handleDragEnd,
-        clearCompletedTasks
+        clearCompletedTasks,
+        error,
+        lastUpdate,
+        isAuthenticated,
+        fetchTodos,
+        hasTodoAccess
     };
+
+    if (!initialized) {
+        return null;
+    }
 
     return (
         <TodoContext.Provider value={value}>
@@ -228,4 +355,4 @@ TodoProvider.propTypes = {
     children: PropTypes.node.isRequired,
 };
 
-export default TodoProvider;
+export { TodoContext, TodoProvider, useTodo };

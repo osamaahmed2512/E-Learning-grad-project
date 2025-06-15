@@ -4,11 +4,26 @@ import { FiClock, FiCoffee, FiX, FiCheck } from 'react-icons/fi';
 import { MdWorkOutline } from 'react-icons/md';
 import PropTypes from 'prop-types';
 
-const CustomTimerModal = ({ isOpen, closeModal, onSave }) => {
+const CustomTimerModal = ({
+    isOpen = false,
+    closeModal = () => { },
+    onSave = () => { },
+    executing = { customWork: 25, customBreak: 5 }
+}) => {
     const [customTimers, setCustomTimers] = useState({
-        work: 25,
-        break: 5
+        work: executing.customWork || 25,
+        break: executing.customBreak || 5
     });
+
+    // Reset values when modal opens
+    useEffect(() => {
+        if (isOpen) {
+            setCustomTimers({
+                work: executing.customWork || 25,
+                break: executing.customBreak || 5
+            });
+        }
+    }, [isOpen, executing]);
 
     // Handle ESC key
     useEffect(() => {
@@ -159,7 +174,7 @@ const CustomTimerModal = ({ isOpen, closeModal, onSave }) => {
                                         <button
                                             type="button"
                                             className="text-gray-600 hover:text-gray-800 px-4 py-2 text-sm 
-                                                     font-medium rounded-lg hover:bg-gray-50 transition-colors
+                                                     font-medium rounded-lg hover:bg-gray-50 transition-colors cursor-pointer
                                                      flex items-center gap-2"
                                             onClick={closeModal}
                                         >
@@ -170,7 +185,7 @@ const CustomTimerModal = ({ isOpen, closeModal, onSave }) => {
                                             type="button"
                                             className="inline-flex items-center gap-2 rounded-lg 
                                                      bg-gradient-to-r from-indigo-600 to-indigo-700 
-                                                     px-4 py-2 text-sm font-medium text-white 
+                                                     px-4 py-2 text-sm font-medium text-white cursor-pointer
                                                      hover:from-indigo-700 hover:to-indigo-800 
                                                      focus:outline-none focus-visible:ring-2 
                                                      focus-visible:ring-indigo-500 focus-visible:ring-offset-2
@@ -194,9 +209,13 @@ const CustomTimerModal = ({ isOpen, closeModal, onSave }) => {
 };
 
 CustomTimerModal.propTypes = {
-    isOpen: PropTypes.bool.isRequired,
-    closeModal: PropTypes.func.isRequired,
-    onSave: PropTypes.func.isRequired,
+    isOpen: PropTypes.bool,
+    closeModal: PropTypes.func,
+    onSave: PropTypes.func,
+    executing: PropTypes.shape({
+        customWork: PropTypes.number,
+        customBreak: PropTypes.number
+    })
 };
 
 export default CustomTimerModal;

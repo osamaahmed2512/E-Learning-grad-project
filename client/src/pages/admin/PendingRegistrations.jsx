@@ -5,7 +5,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 // Configure axios defaults
-axios.defaults.baseURL = 'https://localhost:7018';
+axios.defaults.baseURL = 'https://learnify.runasp.net';
 axios.defaults.timeout = 10000;
 axios.defaults.headers.common['Accept'] = 'application/json';
 
@@ -251,7 +251,8 @@ const PendingRegistrations = () => {
   };
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
+    <div className="flex min-h-screen">
+      <main className="w-full md:flex-1 p-2 sm:p-4 md:p-6 lg:p-8 overflow-x-auto">
       <h1 className="text-xl md:text-2xl font-semibold mb-6">Pending Teacher Registrations</h1>
 
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -263,7 +264,7 @@ const PendingRegistrations = () => {
               placeholder="Search by name or email..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="p-2 w-full outline-none cursor-text"
+              className="p-2 sm:p-2.5 w-full outline-none cursor-text text-sm sm:text-base placeholder:text-gray-400 min-w-0"
             />
           </div>
         </div>
@@ -454,6 +455,7 @@ const PendingRegistrations = () => {
         pauseOnHover
         theme="colored"
       />
+      </main>
     </div>
   );
 };

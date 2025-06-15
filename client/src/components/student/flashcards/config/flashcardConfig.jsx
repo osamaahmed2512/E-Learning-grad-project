@@ -96,27 +96,37 @@ export const guideSteps = [
   {
     icon: '👋',
     title: 'Welcome to Flashcards!',
-    content: 'Start your learning journey with our interactive flashcard system. Create, organize, and master your knowledge efficiently.'
+    content: 'This feature is for students only. You can create, review, and master your own flashcards to help you study and remember important information.'
   },
   {
-    icon: '📝',
+    icon: '➕',
     title: 'Create Your Cards',
-    content: 'Click the "Add Card" button to create new flashcards. Add your question on the front and the answer on the back.'
-  },
-  {
-    icon: '🎯',
-    title: 'Track Your Progress',
-    content: 'Cards start as NEW, then progress through HARD, MEDIUM, EASY, and finally MASTERED as you learn them.'
-  },
-  {
-    icon: '⭐',
-    title: 'Master Your Knowledge',
-    content: 'Answer correctly to move cards up through difficulties. Wrong answers will move cards back to help reinforce learning.'
+    content: 'Click the "Add Card" button to create a new flashcard. If you are in a specific difficulty category (like Hard), your new card will be created in that category. Otherwise, it will start as New.'
   },
   {
     icon: '🔄',
-    title: 'Review and Improve',
-    content: 'Keep practicing until your cards reach Mastered! Remember, cards can move back if you need more practice.'
+    title: 'How Cards Move',
+    content: 'When you answer a card correctly, it moves up to the next difficulty. If you answer incorrectly, it may stay or move down, depending on its current level. This helps you focus on what you need to practice most.'
+  },
+  {
+    icon: '📈',
+    title: 'Difficulty Levels',
+    content: 'Cards move through these levels: New → Hard → Medium → Easy → Mastered. The more you practice and answer correctly, the closer your cards get to Mastered!'
+  },
+  {
+    icon: '🚦',
+    title: 'Transition Rules',
+    content: 'Correct answer: New→Hard, Hard→Medium, Medium→Easy, Easy→Mastered, Mastered stays. Wrong answer: New stays, Hard stays, Medium→Hard, Easy→Medium, Mastered→Easy.'
+  },
+/*   {
+    icon: '🧑‍🎓',
+    title: 'Student Only',
+    content: 'Only students can use flashcards. Teachers and admins do not have access to this feature.'
+  }, */
+  {
+    icon: '✅',
+    title: 'Get Started!',
+    content: 'Start adding your cards, practice regularly, and watch your progress. Good luck mastering your material!'
   }
 ];
 

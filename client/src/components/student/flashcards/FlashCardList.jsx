@@ -55,30 +55,21 @@ const FlashCardList = ({
 
   return (
     <>
-      {categoryCards.map((card, categoryIndex) => {
-        // Find the global index of the card in the original array
-        const globalIndex = cards.findIndex(c => 
-          c.question === card.question && 
-          c.answer === card.answer && 
-          c.createdAt === card.createdAt
-        );
-
-        return (
+      {categoryCards.map((card) => (
           <div 
-            key={`${card.createdAt}-${globalIndex}`}
+          key={card.id}
             className="transform transition-all duration-300 hover:scale-[1.02]"
           >
             <FlashCard
               card={card}
-              onEdit={() => onEdit(globalIndex)}
-              onDelete={() => onDelete(globalIndex)}
-              onRight={() => onRight(globalIndex)}
-              onWrong={() => onWrong(globalIndex)}
-              index={globalIndex}
+            onEdit={() => onEdit(card.id)}
+            onDelete={() => onDelete(card.id)}
+            onRight={() => onRight(card.id, card.difficulty)}
+            onWrong={() => onWrong(card.id, card.difficulty)}
+            index={card.id}
             />
           </div>
-        );
-      })}
+      ))}
     </>
   );
 };

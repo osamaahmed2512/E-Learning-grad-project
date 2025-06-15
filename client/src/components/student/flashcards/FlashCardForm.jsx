@@ -15,7 +15,8 @@ const FlashCardForm = ({
   setAnswer, 
   errorMessage,
   selectedCategory,
-  isEditing 
+  isEditing,
+  saving
 }) => {
   // Handle Escape key
   useEffect(() => {
@@ -55,6 +56,7 @@ const FlashCardForm = ({
           <button
             onClick={onClose}
             className="cursor-pointer text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-full"
+            disabled={saving}
           >
             <FaTimes className="text-xl" />
           </button>
@@ -121,21 +123,26 @@ const FlashCardForm = ({
           <button
             onClick={onClose}
             className="cursor-pointer px-6 py-2.5 text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 active:bg-gray-100 transition-all duration-200 shadow-sm hover:shadow transform hover:-translate-y-0.5"
+            disabled={saving}
           >
             Cancel
           </button>
           <button
             onClick={onSave}
-            disabled={!question.trim() || !answer.trim()}
+            disabled={!question.trim() || !answer.trim() || saving}
             className={`cursor-pointer px-6 py-2.5 text-white rounded-xl transition-all duration-200 shadow-sm hover:shadow-lg transform hover:-translate-y-0.5 ${
               selectedCategory 
                 ? `${difficultyColors[selectedCategory].button} ${
-                    (!question.trim() || !answer.trim()) ? 'opacity-50 cursor-not-allowed' : ''
+                    (!question.trim() || !answer.trim() || saving) ? 'opacity-50 cursor-not-allowed' : ''
                   }`
                 : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 active:from-blue-700 active:to-blue-800'
             }`}
           >
-            {isEditing ? 'Save Changes' : 'Create Card'}
+            {saving ? (
+              <span className="flex items-center"><svg className="animate-spin h-5 w-5 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>Saving...</span>
+            ) : (
+              isEditing ? 'Save Changes' : 'Create Card'
+            )}
           </button>
         </div>
       </div>
@@ -181,7 +188,8 @@ FlashCardForm.propTypes = {
   setAnswer: PropTypes.func.isRequired,
   errorMessage: PropTypes.string,
   selectedCategory: PropTypes.string,
-  isEditing: PropTypes.bool
+  isEditing: PropTypes.bool,
+  saving: PropTypes.bool
 };
 
 export default FlashCardForm;

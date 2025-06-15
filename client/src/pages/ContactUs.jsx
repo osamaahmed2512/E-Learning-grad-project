@@ -7,7 +7,7 @@ import axios from 'axios';
 import RoleBasedLayout from "../components/common/RoleBasedLayout";
 
 // Configure axios defaults
-axios.defaults.baseURL = 'https://localhost:7018';
+axios.defaults.baseURL = 'https://learnify.runasp.net';
 axios.defaults.timeout = 10000;
 axios.defaults.headers.common['Accept'] = 'application/json';
 

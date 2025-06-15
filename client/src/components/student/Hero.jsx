@@ -20,9 +20,10 @@ const Hero = () => {
         We bring together world-class instructors, interactive content, and a supportive community to help you achieve your personal and professional goals.
       </p>
 
-      {/* Search For Courses */} 
-      <div className='mb-10'></div>  
-      <SearchBar />
+      {/* Search For Courses */}
+      <div className='mt-20 w-full max-w-xs sm:max-w-md md:max-w-xl mx-auto'>
+        <SearchBar />
+      </div>
     </div>
   )
 }

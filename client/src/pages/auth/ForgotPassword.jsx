@@ -75,7 +75,7 @@ const ForgotPassword = () => {
         try {
           const response = await axios({
             method: 'post',
-            url: 'https://localhost:7018/api/Auth/forgetpassword',
+            url: 'https://learnify.runasp.net/api/Auth/forgetpassword',
             params: { email: email.trim() },
             headers: {
               accept: '*/*',
@@ -115,7 +115,7 @@ const ForgotPassword = () => {
       try {
         const response = await axios({
           method: 'post',
-          url: 'https://localhost:7018/api/Auth/VerifyOtp',
+          url: 'https://learnify.runasp.net/api/Auth/VerifyOtp',
           params: {
             email: email.trim(),
             otp: otp

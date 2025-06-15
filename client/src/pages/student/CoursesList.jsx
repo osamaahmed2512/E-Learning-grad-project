@@ -5,65 +5,47 @@ import { useParams } from 'react-router-dom';
 import CourseCard from '../../components/student/CourseCard';
 import { assets } from '../../assets/assets';
 import Footer from '../../components/student/Footer';
-import { FiInfo } from 'react-icons/fi';
 import { FaRobot } from "react-icons/fa";
 import RagChat from '../../components/chat/RagChat';
+import axios from 'axios';
 
 const CoursesList = () => {
-  const { navigate, allCourses } = useContext(AppContext);
+  const { navigate } = useContext(AppContext);
   const { input } = useParams();
-  const [showRecommendModal, setShowRecommendModal] = useState(false);
   const [showRagModal, setShowRagModal] = useState(false);
   const [filteredCourse, setFilteredCourse] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-
-  const currentUser = {
-    username: "AhmedAbdelhamed254",
-    lastActive: "2025-04-21 03:35:36"
-  };
-
-  const recommendedCourses = [
-    {
-      id: "js_course",
-      title: "Advanced Mathematics",
-      description: "Perfect for your current skill level",
-      courseSlug: "advanced-mathematics"
-    },
-    {
-      id: "calc_course",
-      title: "Calculus Fundamentals",
-      description: "Recommended based on your interests",
-      courseSlug: "calculus-fundamentals"
-    },
-    {
-      id: "algebra_course",
-      title: "Linear Algebra",
-      description: "Popular among students like you",
-      courseSlug: "linear-algebra"
-    }
-  ];
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    setIsLoading(true);
-    if (allCourses && allCourses.length > 0) {
-      const tempCourses = allCourses.slice();
+    const fetchCourses = async () => {
+      try {
+        setIsLoading(true);
+        const response = await axios.get('https://learnify.runasp.net/api/Course/GetAllCoursesstudent', { timeout: 20000 });
+        const courses = response.data.data;
 
-      input
-        ? setFilteredCourse(
-            tempCourses.filter(
+        if (input) {
+          setFilteredCourse(
+            courses.filter(
               (item) =>
-                item.courseTitle.toLowerCase().includes(input.toLowerCase())
+                item.name.toLowerCase().includes(input.toLowerCase()) ||
+                item.course_category.toLowerCase().includes(input.toLowerCase())
             )
-          )
-        : setFilteredCourse(tempCourses);
-    }
-    setTimeout(() => setIsLoading(false), 1000);
-  }, [allCourses, input]);
+          );
+        } else {
+          setFilteredCourse(courses);
+        }
+        setError(null);
+      } catch (err) {
+        setError('Oops! Something went wrong while loading courses. Please check your connection or try again in a few moments.');
+        console.error('Error fetching courses:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const handleCourseClick = (courseSlug) => {
-    setShowRecommendModal(false);
-    navigate(`/course/${courseSlug}`);
-  };
+    fetchCourses();
+  }, [input]);
 
   return (
     <>
@@ -86,15 +68,8 @@ const CoursesList = () => {
             </p>
           </div>
 
-          {/* Search and Recommendation */}
+          {/* Search */}
           <div className="flex flex-col sm:flex-row gap-3 sm:items-center w-full md:w-auto">
-            <button
-              onClick={() => setShowRecommendModal(true)}
-              className="flex items-center justify-center cursor-pointer gap-2 bg-green-600 text-white px-4 py-2.5 rounded-lg hover:bg-green-500 transition-colors duration-200 text-sm sm:text-base w-full sm:w-auto"
-            >
-              <FiInfo className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span>Recommendations</span>
-            </button>
             <div className="w-full sm:w-auto">
               <SearchBar data={input} />
             </div>
@@ -114,6 +89,18 @@ const CoursesList = () => {
           </div>
         )}
 
+        {/* Error Message */}
+        {error && (
+          <div className="col-span-full py-12 px-4">
+            <div className="max-w-md mx-auto bg-gradient-to-r from-red-100 to-yellow-100 p-6 rounded-lg shadow-md flex flex-col items-center">
+              <img src={assets.cross_icon} alt="error" className="w-12 h-12 mb-4 animate-bounce" />
+              <h3 className="text-xl font-bold text-red-700 mb-2">Whoops! Trouble Fetching Courses</h3>
+              <p className="text-base text-gray-700 mb-2">{error}</p>
+              <button onClick={() => window.location.reload()} className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition cursor-pointer">Try Again</button>
+            </div>
+          </div>
+        )}
+
         {/* Course Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 my-8 sm:my-12">
           {isLoading ? (
@@ -121,8 +108,8 @@ const CoursesList = () => {
               <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
             </div>
           ) : filteredCourse.length > 0 ? (
-            filteredCourse.map((course, index) => (
-              <CourseCard key={index} course={course} />
+            filteredCourse.map((course) => (
+              <CourseCard key={course.id} course={{ ...course, average_rating: course.average_rating ? Number(course.average_rating).toFixed(1) : '0.0' }} />
             ))
           ) : (
             <div className="col-span-full py-12 px-4">
@@ -135,84 +122,14 @@ const CoursesList = () => {
                 </p>
                 {input && (
                   <p className="text-xs sm:text-sm text-gray-500">
-                    Try adjusting your search terms or browse our recommended courses.
+                    Try adjusting your search terms or browse our courses.
                   </p>
                 )}
-                <button
-                  onClick={() => setShowRecommendModal(true)}
-                  className="mt-4 w-full sm:w-auto px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200 text-sm sm:text-base cursor-pointer"
-                >
-                  View Recommendations
-                </button>
               </div>
             </div>
           )}
         </div>
       </div>
-
-      {/* Recommendation Modal */}
-      {showRecommendModal && (
-        <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm bg-black/30 p-4 overflow-y-auto z-50">
-          <div className="bg-white rounded-xl relative w-full max-w-lg sm:max-w-xl md:max-w-2xl m-4 shadow-2xl">
-            <div className="p-4 sm:p-6">
-              <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 text-center">
-                Course Recommendations
-              </h2>
-              
-              <div className="space-y-4 sm:space-y-6">
-                <div className="border-l-4 border-blue-500 pl-3 sm:pl-4 bg-gray-50 p-2 sm:p-3 rounded-r-lg">
-                  <h3 className="text-base sm:text-lg font-medium mb-2">Based on Your Profile</h3>
-                  <p className="text-sm sm:text-base text-gray-600">
-                    Personalized recommendations for your learning journey:
-                  </p>
-                </div>
-
-                <div className="space-y-3 sm:space-y-4">
-                  {recommendedCourses.map((course) => (
-                    <div 
-                      key={course.id}
-                      onClick={() => handleCourseClick(course.courseSlug)}
-                      className="group p-3 sm:p-4 border border-gray-200 rounded-lg hover:border-blue-500 transition-all duration-300 cursor-pointer hover:shadow-md bg-white"
-                    >
-                      <h4 className="font-medium text-gray-800 group-hover:text-blue-600 transition-colors duration-300 text-sm sm:text-base">
-                        {course.title}
-                      </h4>
-                      <p className="text-xs sm:text-sm text-gray-500 mt-1 group-hover:text-gray-600">
-                        {course.description}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="bg-blue-50 p-3 sm:p-4 rounded-lg border border-blue-100">
-                  <p className="text-xs sm:text-sm text-blue-600">
-                    These recommendations are personalized based on your profile and learning history.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-3 mt-6 sm:mt-8">
-                <button 
-                  type="button" 
-                  className="w-full bg-gray-100 text-gray-700 cursor-pointer px-4 py-2 rounded-lg hover:bg-gray-200 transition-all duration-300 text-sm sm:text-base font-medium"
-                  onClick={() => setShowRecommendModal(false)}
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-
-            <button 
-              onClick={() => setShowRecommendModal(false)}
-              className="absolute top-2 right-2 sm:top-4 sm:right-4 text-gray-400 hover:text-gray-600 transition-colors duration-200 cursor-pointer p-1 hover:bg-gray-100 rounded-full"
-            >
-              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* RAG Chat Button */}
       <button

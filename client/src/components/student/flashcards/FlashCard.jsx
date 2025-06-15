@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { FaPen, FaTrash, FaCheck, FaTimes, FaInfoCircle, FaClock } from 'react-icons/fa';
 import { difficultyColors, progressionRules } from './config/flashcardConfig';
+import { formatDateAMPM } from '../../../utils/formatDate';
 
 const FlashCard = ({ card, onEdit, onDelete, onRight, onWrong, index }) => {
   const [isFlipped, setIsFlipped] = useState(false);
@@ -28,7 +29,7 @@ const FlashCard = ({ card, onEdit, onDelete, onRight, onWrong, index }) => {
     if (nextDifficulty) {
       setIsExiting(true);
       setTimeout(() => {
-        onRight(index);
+        onRight(card.id, card.difficulty);
         setIsFlipped(false);
         setIsExiting(false);
       }, 300);
@@ -41,7 +42,7 @@ const FlashCard = ({ card, onEdit, onDelete, onRight, onWrong, index }) => {
     if (nextDifficulty) {
       setIsExiting(true);
       setTimeout(() => {
-        onWrong(index);
+        onWrong(card.id, card.difficulty);
         setIsFlipped(false);
         setIsExiting(false);
       }, 300);
@@ -112,22 +113,24 @@ const FlashCard = ({ card, onEdit, onDelete, onRight, onWrong, index }) => {
         </div>
 
         {/* Action Buttons */}
-        <div className="absolute bottom-4 right-4 flex space-x-3 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="absolute bottom-4 right-4 flex space-x-3">
           <button
             onClick={(e) => {
               e.stopPropagation();
-              onEdit(index);
+              onEdit(card.id);
             }}
             className={`p-2 ${colors.primary} rounded-full transition-transform hover:scale-110`}
+            title="Edit Card"
           >
             <FaPen className="text-lg" />
           </button>
           <button
             onClick={(e) => {
               e.stopPropagation();
-              onDelete(index);
+              onDelete(card.id);
             }}
             className="p-2 text-red-500 hover:text-red-600 rounded-full transition-transform hover:scale-110"
+            title="Delete Card"
           >
             <FaTrash className="text-lg" />
           </button>
@@ -175,12 +178,12 @@ const FlashCard = ({ card, onEdit, onDelete, onRight, onWrong, index }) => {
         <div className="absolute bottom-16 left-4 flex flex-col space-y-1">
           {card.createdAt && (
             <div className="flex items-center space-x-2 text-xs text-gray-500">
-              <FaClock /> <span>Created: {new Date(card.createdAt).toLocaleDateString()}</span>
+              <FaClock /> <span>Created: {formatDateAMPM(card.createdAt)}</span>
             </div>
           )}
           {card.lastModified && card.lastModified !== card.createdAt && (
             <div className="flex items-center space-x-2 text-xs text-gray-500">
-              <FaClock /> <span>Modified: {new Date(card.lastModified).toLocaleDateString()}</span>
+              <FaClock /> <span>Modified: {formatDateAMPM(card.lastModified)}</span>
             </div>
           )}
         </div>

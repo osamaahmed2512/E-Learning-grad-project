@@ -11,7 +11,7 @@
     scroll-behavior: smooth;
     height: 100%;
   }
-  
+
   body {
     height: 100%;
     overscroll-behavior: none;
@@ -21,16 +21,20 @@
 
 /* Hide Scrollbar for Mobile and Tablet Devices */
 @media (max-width: 1024px) {
-  html, body {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;     /* Firefox */
+
+  html,
+  body {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
     margin-right: 0 !important;
     padding-right: 0 !important;
     width: 100% !important;
     overflow-x: hidden;
     touch-action: pan-y pinch-zoom;
   }
-  
+
   html::-webkit-scrollbar,
   body::-webkit-scrollbar {
     display: none;
@@ -142,4 +146,3 @@
 .rich-text li {
   margin-bottom: 8px;
 }
-

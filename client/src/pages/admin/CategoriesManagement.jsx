@@ -92,20 +92,11 @@ const CategoriesPage = () => {
         category.name.toLowerCase().includes(search.toLowerCase())
       );
     }
-
-    // Then sort
-    const sorted = [...filtered].sort((a, b) => {
-      if (order === 'asc') {
-        return a.id - b.id;
-      } else {
-        return b.id - a.id;
-      }
-    });
-
+    // Remove sorting here
     // Finally, paginate
     const startIndex = (page - 1) * categoriesPerPage;
     const endIndex = startIndex + categoriesPerPage;
-    setDisplayedCategories(sorted.slice(startIndex, endIndex));
+    setDisplayedCategories(filtered.slice(startIndex, endIndex));
   };
 
   useEffect(() => {
@@ -114,20 +105,29 @@ const CategoriesPage = () => {
 
   useEffect(() => {
     updateDisplayedCategories(allCategories, searchQuery, currentPage, sortOrder);
-  }, [searchQuery, currentPage, sortOrder]); // Update display when these change
+  }, [searchQuery, currentPage, sortOrder, allCategories]);
 
   const handleSort = () => {
     const newSortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
     setSortOrder(newSortOrder);
     setCurrentPage(1);
+    // Sort allCategories before pagination
+    setAllCategories(prev => {
+      const sorted = [...prev].sort((a, b) => {
+        if (newSortOrder === 'asc') {
+          return a.id - b.id;
+        } else {
+          return b.id - a.id;
+        }
+      });
+      return sorted;
+    });
   };
 
   const handleAddCategory = async () => {
     setErrors({ name: '' });
-
     let isValid = true;
     const newErrors = { name: '' };
-
     if (!newCategory.name.trim()) {
       newErrors.name = 'Category name is required';
       isValid = false;
@@ -135,22 +135,30 @@ const CategoriesPage = () => {
       newErrors.name = 'Category name cannot be only numbers';
       isValid = false;
     }
-
     if (!isValid) {
       setErrors(newErrors);
       return;
     }
-
+    let createdBy = 'N/A';
+    try {
+      const token = localStorage.getItem('token');
+      const userRes = await axios.get('/api/Auth/GetUserdetails', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (userRes.data && userRes.data.email) {
+        createdBy = userRes.data.email;
+      }
+    } catch (err) {}
     try {
       const response = await axios.post('/api/Category', {
-        name: newCategory.name.trim()
+        name: newCategory.name.trim(),
+        created_by: createdBy,
+        last_edit_by: null // Not edited yet
       }, {
         headers: {
           'Content-Type': 'application/json'
         }
       });
-      console.log('Add category response:', response);
-      // Accept any 2xx status as success
       if (response.status >= 200 && response.status < 300) {
         toast.success("Category created successfully!", {
           ...toastConfig,
@@ -160,8 +168,7 @@ const CategoriesPage = () => {
         setNewCategory({ name: '' });
         fetchCategories();
       } else {
-        // Fallback for unexpected status
-        toast.error("Unexpected response from server.", {
+        toast.error("This category already exists.", {
           ...toastConfig,
           autoClose: 3000
         });
@@ -169,12 +176,14 @@ const CategoriesPage = () => {
     } catch (error) {
       console.error('Error adding category:', error);
       let errorMessage = 'Failed to create category';
-      if (error.response?.data?.message) {
+      if (error.response?.data?.Message) {
+        errorMessage = error.response.data.Message;
+      } else if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.response?.data) {
         errorMessage = JSON.stringify(error.response.data);
       }
-      toast.error(errorMessage, {
+      toast.error(`Error creating category: ${errorMessage}`, {
         ...toastConfig,
         autoClose: 3000
       });
@@ -191,18 +200,24 @@ const CategoriesPage = () => {
         const response = await axios.delete(`/api/Category/${categoryId}`);
         if (response.status >= 200 && response.status < 300) {
           showToast.success('Category deleted successfully');
-          // If the last item on the page was deleted, go to previous page if not on first
           const remaining = displayedCategories.length - 1;
           if (remaining === 0 && currentPage > 1) {
             setCurrentPage(currentPage - 1);
-            // fetchCategories will be called by useEffect when currentPage changes
           } else {
             fetchCategories();
           }
         }
       } catch (error) {
         console.error('Error deleting category:', error);
-        showToast.error('Failed to delete category. Please try again.');
+        let errorMessage = 'Failed to delete category';
+        if (error.response?.data?.Message) {
+          errorMessage = error.response.data.Message;
+        } else if (error.response?.data?.message) {
+          errorMessage = error.response.data.message;
+        } else if (error.response?.data) {
+          errorMessage = JSON.stringify(error.response.data);
+        }
+        showToast.error(`Error deleting category: ${errorMessage}`);
       }
     }
   };
@@ -225,12 +240,31 @@ const CategoriesPage = () => {
         const loadingToastId = toast.loading('Updating category...', {
           position: "bottom-right"
         });
-
+        let updatedBy = 'N/A';
+        try {
+          const token = localStorage.getItem('token');
+          const userRes = await axios.get('/api/Auth/GetUserdetails', {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (userRes.data && userRes.data.email) {
+            updatedBy = userRes.data.email;
+          }
+        } catch (err) {}
         const response = await axios.put(`/api/Category/${selectedCategory.id}`, {
-          name: selectedCategory.name
+          name: selectedCategory.name,
+          created_by: selectedCategory.created_by // keep original creator
         });
-        
         if (response.status === 200) {
+          setAllCategories(prev => prev.map(cat =>
+            cat.id === selectedCategory.id
+              ? { ...cat, name: selectedCategory.name, last_edit_by: updatedBy }
+              : cat
+          ));
+          setDisplayedCategories(prev => prev.map(cat =>
+            cat.id === selectedCategory.id
+              ? { ...cat, name: selectedCategory.name, last_edit_by: updatedBy }
+              : cat
+          ));
           toast.update(loadingToastId, {
             render: "Category updated successfully!",
             type: "success",
@@ -239,11 +273,18 @@ const CategoriesPage = () => {
           });
           setShowEditModal(false);
           setSelectedCategory(null);
-          fetchCategories();
         }
       } catch (error) {
         console.error('Error updating category:', error);
-        showToast.error('Failed to update category. Please try again.');
+        let errorMessage = 'Failed to update category';
+        if (error.response?.data?.Message) {
+          errorMessage = error.response.data.Message;
+        } else if (error.response?.data?.message) {
+          errorMessage = error.response.data.message;
+        } else if (error.response?.data) {
+          errorMessage = JSON.stringify(error.response.data);
+        }
+        showToast.error(`Error updating category: ${errorMessage}`);
       }
     }
   };
@@ -277,6 +318,22 @@ const CategoriesPage = () => {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   };
+
+  // Add a helper function for date formatting
+  function formatDateTime(dateString) {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    let hours = date.getHours();
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12; // the hour '0' should be '12'
+    const hourStr = String(hours).padStart(2, '0');
+    return `${year}-${month}-${day} ${hourStr}:${minutes} ${ampm}`;
+  }
 
   return (
     <div className="min-h-screen p-4 md:p-8">
@@ -315,7 +372,7 @@ const CategoriesPage = () => {
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors duration-200 cursor-pointer"
+          className="flex items-center justify-center gap-2 bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors duration-200 cursor-pointer"
         >
           <Plus size={20} />
           Add Category
@@ -330,68 +387,104 @@ const CategoriesPage = () => {
         </button>
       </div>
 
-      {/* Categories Table */}
+      {/* Responsive Categories List/Table */}
       {loading ? (
         <div className="flex justify-center items-center h-64">
           <span className="text-gray-500">Loading...</span>
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-x-auto">
-          <table className="min-w-full">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
-                  <button
-                    onClick={handleSort}
-                    className="flex items-center gap-1 hover:text-blue-600 transition-colors duration-200 cursor-pointer"
-                  >
-                    ID
-                    <ArrowUpDown size={16} />
-                    {sortOrder === 'asc' ? '↑' : '↓'}
-                  </button>
-                </th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Name</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Date</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Created By</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {displayedCategories.length > 0 ? (
-                displayedCategories.map((category) => (
-                  <tr key={category.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">{category.id}</td>
-                    <td className="px-6 py-4">{category.name.toLowerCase()}</td>
-                    <td className="px-6 py-4">{category.creaton_date ? new Date(category.creaton_date).toISOString().slice(0, 10) : 'N/A'}</td>
-                    <td className="px-6 py-4">{category.created_by || 'N/A'}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <button
-                          onClick={() => handleEditCategory(category)}
-                          className="text-blue-500 hover:text-blue-700 cursor-pointer"
-                        >
-                          <Edit size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteCategory(category.id)}
-                          className="text-red-500 hover:text-red-700 cursor-pointer"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
+        <>
+          {/* Mobile View - Cards */}
+          <div className="block md:hidden space-y-3">
+            {displayedCategories.length > 0 ? (
+              displayedCategories.map((category) => (
+                <div key={category.id} className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-xs text-gray-500">ID: {category.id}</span>
+                      <h3 className="font-medium mt-1 text-base">{category.name.toLowerCase()}</h3>
+                      <p className="text-sm text-gray-600">{formatDateTime(category.creaton_date)}</p>
+                      <p className="text-sm text-gray-500">Created By: {category.created_by ? category.created_by : 'Admin (No Username)'}</p>
+                    </div>
+                    <div className="flex flex-col gap-2 items-end">
+                      <button
+                        onClick={() => handleEditCategory(category)}
+                        className="text-blue-500 hover:text-blue-700 cursor-pointer p-1"
+                      >
+                        <Edit size={18} />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteCategory(category.id)}
+                        className="text-red-500 hover:text-red-700 cursor-pointer p-1"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center text-gray-500 py-8">No categories found.</div>
+            )}
+          </div>
+          {/* Desktop View - Table */}
+          <div className="hidden md:block w-full overflow-x-auto min-w-0">
+            <table className="min-w-full text-xs sm:text-sm">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
+                    <button
+                      onClick={handleSort}
+                      className="flex items-center gap-1 hover:text-blue-600 transition-colors duration-200 cursor-pointer"
+                    >
+                      ID
+                      <ArrowUpDown size={16} />
+                      {sortOrder === 'asc' ? '↑' : '↓'}
+                    </button>
+                  </th>
+                  <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Name</th>
+                  <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Date</th>
+                  <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Created By</th>
+                  <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {displayedCategories.length > 0 ? (
+                  displayedCategories.map((category) => (
+                    <tr key={category.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4">{category.id}</td>
+                      <td className="px-6 py-4">{category.name.toLowerCase()}</td>
+                      <td className="px-6 py-4">{formatDateTime(category.creaton_date)}</td>
+                      <td className="px-6 py-4">{category.created_by ? category.created_by : 'Admin (No Username)'}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => handleEditCategory(category)}
+                            className="text-blue-500 hover:text-blue-700 cursor-pointer"
+                          >
+                            <Edit size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteCategory(category.id)}
+                            className="text-red-500 hover:text-red-700 cursor-pointer"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="5" className="px-6 py-4 text-center text-gray-500">
+                      No categories found.
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="5" className="px-6 py-4 text-center text-gray-500">
-                    No categories found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
 
       {/* Pagination Controls */}

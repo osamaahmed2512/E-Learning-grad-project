@@ -7,7 +7,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { FaExclamationCircle } from "react-icons/fa";
 
 // Configure axios defaults
-axios.defaults.baseURL = 'https://localhost:7018';
+axios.defaults.baseURL = 'https://learnify.runasp.net';
 axios.defaults.timeout = 60000; // Increased to 60 seconds
 axios.defaults.headers.common['Accept'] = 'application/json';
 
@@ -189,7 +189,7 @@ const UsersPage = () => {
             email: user.email,
             role: user.role,
             createdAt: user.registration_date ? new Date(user.registration_date).toISOString().split('T')[0] : 'N/A',
-            createdBy: creator,
+            createdBy: user.created_by ? user.created_by : 'User or Admin',
             is_approved: user.is_approved,
             preferred_category: user.preferred_category || 'N/A',
             skill_level: user.skill_level || 'N/A',
@@ -197,7 +197,8 @@ const UsersPage = () => {
             bio: user.bio,
             introduction: user.introduction,
             image_url: user.image_url,
-            cv_url: user.cv_url
+            cv_url: user.cv_url,
+            created_by: user.created_by ? user.created_by : 'User or Admin'
           };
         });
 
@@ -425,6 +426,12 @@ const UsersPage = () => {
         errors.email = 'Please enter a valid email address';
       }
 
+      // Gmail validation
+      if (newUser.email && !/^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(newUser.email.trim())) {
+        errors.email = 'Only Gmail accounts are allowed (must end with @gmail.com)';
+        toast.error('Only Gmail accounts are allowed (must end with @gmail.com)', toastConfig);
+      }
+
       // Password validation (minimum 8 characters)
       if (newUser.password && newUser.password.length < 8) {
         errors.password = 'Password must be at least 8 characters long';
@@ -442,6 +449,18 @@ const UsersPage = () => {
       });
 
       try {
+        // Fetch admin email from API (like CategoriesManagement.jsx)
+        let createdBy = 'N/A';
+        try {
+          const token = localStorage.getItem('token');
+          const userRes = await axios.get('/api/Auth/GetUserdetails', {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (userRes.data && userRes.data.email) {
+            createdBy = userRes.data.email;
+          }
+        } catch (err) {}
+
         // Create FormData object for multipart/form-data
         const formData = new FormData();
         
@@ -465,8 +484,11 @@ const UsersPage = () => {
           formData.append('BIO', newUser.bio.trim());
         }
 
+        // Add created_by to the formData
+        formData.append('Created_By', createdBy);
+
         const response = await axios.post(
-          'https://localhost:7018/api/Auth/AdminRegister',
+          'https://learnify.runasp.net/api/Auth/AdminRegister',
           formData,
           {
             headers: {
@@ -597,7 +619,7 @@ const UsersPage = () => {
 
         const response = await axios({
           method: 'GET',
-          url: 'https://localhost:7018/api/Auth/Getallusers',
+          url: 'https://learnify.runasp.net/api/Auth/Getallusers',
           params: {
             pageSize: 1000000,
             page: 1,
@@ -637,7 +659,7 @@ const UsersPage = () => {
               user.preferred_category?.toLowerCase() || 'N/A',
               user.skill_level || 'N/A',
               formatDate(user.registration_date),
-              user.created_by_username || (user.created_by_admin ? 'Admin' : 'Self-Registered'),
+              user.created_by ? user.created_by : 'User Itself',
               user.username || 'N/A',
               user.bio || 'N/A',
               user.introduction || 'N/A',
@@ -698,6 +720,9 @@ const UsersPage = () => {
           <p className="text-sm text-gray-500 mt-1">
             Category: {user.preferred_category?.toLowerCase() || 'N/A'}
           </p>
+          <p className="text-sm text-gray-500 mt-1">
+            Created By: {user.created_by ? user.created_by : 'User Itself'}
+          </p>
         </div>
         <div className="flex items-center gap-2">
           {user.role.toLowerCase() === 'admin' ? (
@@ -747,7 +772,8 @@ const UsersPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-white p-3 sm:p-4 md:p-6 lg:p-8">
+    <div className="flex min-h-screen">
+      <main className="w-full md:flex-1 p-2 sm:p-4 md:p-6 lg:p-8 overflow-x-auto">
       <ToastContainer
         position="bottom-right"
         autoClose={5000}
@@ -761,13 +787,12 @@ const UsersPage = () => {
         theme="colored"
         limit={3}
       />
-      
       <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold mb-4 sm:mb-6">Manage Users</h1>
 
-      {/* Search and Filter Section - Reorganized for better mobile layout */}
-      <div className="flex flex-col gap-4 mb-6">
-        {/* Search Input - Full Width */}
-        <div className="w-full">
+      {/* Search and Controls Row */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
+        {/* Search Bar - flex-grow to fill left side */}
+        <div className="flex-1">
           <div className="flex items-center bg-white border border-gray-300 rounded-lg overflow-hidden transition-all duration-200 hover:border-blue-400 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200">
             <Search className="text-gray-500 mx-2 sm:mx-3 cursor-pointer" size={20} />
             <input
@@ -792,9 +817,8 @@ const UsersPage = () => {
             )}
           </div>
         </div>
-
-        {/* Controls Group - Responsive Layout */}
-        <div className="flex flex-col sm:flex-row gap-3">
+        {/* Controls group - right side in desktop, below in mobile */}
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto sm:ml-auto justify-end">
           {/* Role Filter */}
           <select
             value={filterRole}
@@ -807,12 +831,10 @@ const UsersPage = () => {
             <option value="teacher">Instructor</option>
             <option value="admin">Admin</option>
           </select>
-
           {/* Sort Button */}
           <button
             onClick={toggleSort}
-            className="flex items-center justify-center gap-1 sm:gap-2 bg-blue-500 text-white px-3 py-2.5 rounded-lg hover:bg-blue-600 
-              whitespace-nowrap text-sm sm:text-base transition-colors duration-200 w-full sm:w-auto cursor-pointer"
+            className="flex items-center justify-center gap-1 sm:gap-2 bg-green-500 text-white px-3 py-2.5 rounded-lg hover:bg-green-600 whitespace-nowrap text-sm sm:text-base transition-colors duration-200 w-full sm:w-auto cursor-pointer"
           >
             <span className="hidden sm:inline">Sort by Date</span>
             <span className="sm:hidden">Sort</span>
@@ -826,21 +848,19 @@ const UsersPage = () => {
               </svg>
             )}
           </button>
-
           {/* Add User Button */}
           <button
             onClick={() => {
               setShowAddModal(true);
               setNewUser((prev) => ({ ...prev, createdBy: adminInfo?.username || '' }));
             }}
-            className="flex items-center justify-center gap-1 sm:gap-2 bg-green-500 text-white px-3 py-2.5 rounded-lg 
-              hover:bg-green-600 text-sm sm:text-base transition-colors duration-200 w-full sm:w-auto cursor-pointer"
+            className="flex items-center justify-center gap-1 sm:gap-2 bg-purple-500 text-white px-3 py-2.5 rounded-lg 
+              hover:bg-purple-600 text-sm sm:text-base transition-colors duration-200 w-full sm:w-auto cursor-pointer"
           >
             <Plus size={20} />
             <span className="hidden sm:inline">Add User</span>
             <span className="sm:hidden">Add</span>
           </button>
-
           {/* Export Button */}
           <button
             onClick={handleExportData}
@@ -875,6 +895,9 @@ const UsersPage = () => {
                       <p className="text-sm text-gray-600">{user.email}</p>
                       <p className="text-sm text-gray-500 mt-1">
                         Category: {user.preferred_category?.toLowerCase() || 'N/A'}
+                      </p>
+                      <p className="text-sm text-gray-500 mt-1">
+                        Created By: {user.created_by ? user.created_by : 'User Itself'}
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -936,6 +959,7 @@ const UsersPage = () => {
                     <th className="px-2 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider w-30">Registration Date</th>
                     <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28">Category</th>
                     <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Skill Level</th>
+                    <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Created By</th>
                     <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-38">Action</th>
                   </tr>
                 </thead>
@@ -950,6 +974,7 @@ const UsersPage = () => {
                         <td className="px-2 py-3 text-sm text-gray-500 break-words whitespace-normal">{user.createdAt}</td>
                         <td className="px-2 py-3 text-sm break-words whitespace-normal">{user.preferred_category?.toLowerCase() || 'N/A'}</td>
                         <td className="px-2 py-3 text-sm break-words whitespace-normal">{user.skill_level || 'N/A'}</td>
+                        <td className="px-2 py-3 text-sm break-words whitespace-normal">{user.created_by ? user.created_by : 'User Itself'}</td>
                         <td className="px-2 py-3 pr-4">
                           <div className="flex items-center justify-center gap-2 align-middle">
                             {/* Approval toggle badge or Admin badge - now first */}
@@ -1348,6 +1373,7 @@ const UsersPage = () => {
           </div>
         </div>
       )}
+      </main>
     </div>
   );
 };

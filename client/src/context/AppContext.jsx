@@ -1,7 +1,7 @@
 import { createContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
-import { logout as logoutAction, loginSuccess } from '../store/UserSlice';
+import { logout as logoutAction, loginSuccess } from '../store/userSlice.js';
 import { dummyCourses } from "../assets/assets";
 import humanizeDuration from "humanize-duration";
 import PropTypes from 'prop-types';
@@ -12,32 +12,32 @@ export const AppContext = createContext({
     user: null,
     isAuthenticated: false,
     loading: false,
-    login: () => {},
-    logout: () => {},
-    updateUserProfile: () => {},
-    navigate: () => {},
+    login: () => { },
+    logout: () => { },
+    updateUserProfile: () => { },
+    navigate: () => { },
     currency: '',
-    allCourses: [],
+/*     allCourses: [],
     enrolledCourses: [],
     calculateRating: () => 0,
     calculateNoOfLectures: () => 0,
     calculateCourseDuration: () => '',
     calculateChapterTime: () => '',
-    fetchUserEnrolledCourses: () => {},
+    fetchUserEnrolledCourses: () => { }, */
     isEducator: false,
-    setIsEducator: () => {},
+    setIsEducator: () => { },
     isAdmin: false,
-    setIsAdmin: () => {},
+    setIsAdmin: () => { },
     pomodoroState: {
         isActive: false,
         duration: 0,
         isPlaying: false,
         timerKey: Date.now(),
         remainingTime: null,
-        onComplete: () => {},
-        onPause: () => {}
+        onComplete: () => { },
+        onPause: () => { }
     },
-    setPomodoroState: () => {}
+    setPomodoroState: () => { }
 });
 
 export const AppContextProvider = ({ children }) => {
@@ -49,7 +49,7 @@ export const AppContextProvider = ({ children }) => {
     const user = useSelector((state) => state.user.user);
     const isAuthenticated = useSelector((state) => state.user.isAuthenticated);
     const loading = useSelector((state) => state.user.loading);
-    
+
     // Course State
     const [allCourses, setAllCourses] = useState([]);
     const [enrolledCourses, setEnrolledCourses] = useState([]);
@@ -65,8 +65,8 @@ export const AppContextProvider = ({ children }) => {
         isPlaying: false,
         timerKey: Date.now(),
         remainingTime: null,
-        onComplete: () => {},
-        onPause: () => {}
+        onComplete: () => { },
+        onPause: () => { }
     });
 
     // Initialize auth state
@@ -137,7 +137,7 @@ export const AppContextProvider = ({ children }) => {
     };
 
     // Course utility functions
-    const calculateRating = (course) => {
+/*     const calculateRating = (course) => {
         if (!course.courseRatings?.length) return 0;
         const totalRating = course.courseRatings.reduce((sum, rating) => sum + rating.rating, 0);
         return totalRating / course.courseRatings.length;
@@ -152,21 +152,21 @@ export const AppContextProvider = ({ children }) => {
     const calculateCourseDuration = (course) => {
         if (!course.courseContent) return "0 minutes";
         let time = 0;
-        course.courseContent.forEach(chapter => 
+        course.courseContent.forEach(chapter =>
             chapter.chapterContent?.forEach(lecture => time += (lecture.lectureDuration || 0))
         );
         return humanizeDuration(time * 60 * 1000, { units: ["h", "m"] });
-    };
+    }; */
 
-    const calculateNoOfLectures = (course) => {
+/*     const calculateNoOfLectures = (course) => {
         if (!course.courseContent) return 0;
-        return course.courseContent.reduce((total, chapter) => 
+        return course.courseContent.reduce((total, chapter) =>
             total + (Array.isArray(chapter.chapterContent) ? chapter.chapterContent.length : 0), 0
         );
-    };
+    }; */
 
     // Data fetching
-    const fetchAllCourses = async () => {
+/*     const fetchAllCourses = async () => {
         try {
             setAllCourses(dummyCourses);
         } catch (error) {
@@ -183,9 +183,9 @@ export const AppContextProvider = ({ children }) => {
             console.error('Error fetching enrolled courses:', error);
         }
     };
-
+ */
     // Initialize data
-    useEffect(() => {
+/*     useEffect(() => {
         const initializeApp = async () => {
             try {
                 await fetchAllCourses();
@@ -199,7 +199,7 @@ export const AppContextProvider = ({ children }) => {
 
         initializeApp();
     }, [isAuthenticated]);
-
+ */
     // Update role-based state
     useEffect(() => {
         if (user) {
@@ -217,13 +217,13 @@ export const AppContextProvider = ({ children }) => {
         updateUserProfile,
         navigate,
         currency,
-        allCourses,
+/*         allCourses,
         enrolledCourses,
         calculateRating,
         calculateNoOfLectures,
         calculateCourseDuration,
         calculateChapterTime,
-        fetchUserEnrolledCourses,
+        fetchUserEnrolledCourses, */
         isEducator,
         setIsEducator,
         isAdmin,

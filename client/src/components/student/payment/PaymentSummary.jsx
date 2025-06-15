@@ -12,24 +12,23 @@ const PaymentSummary = ({ courseDetails }) => {
     );
   }
 
-  const { courseTitle, coursePrice, discount = 0 } = courseDetails;
-  const finalPrice = coursePrice - (coursePrice * discount / 100);
+  const { courseTitle, coursePrice, discount = 0, finalPrice } = courseDetails;
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-6">
       <h2 className="text-2xl font-semibold mb-6">Order Summary</h2>
-      
+
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <span className="text-gray-600">Course</span>
           <span className="font-medium">{courseTitle}</span>
         </div>
-        
+
         <div className="flex justify-between items-center">
           <span className="text-gray-600">Original Price</span>
-          <span className="font-medium">${coursePrice.toFixed(2)}</span>
+          <span className="font-medium">${coursePrice}</span>
         </div>
-        
+
         {discount > 0 && (
           <div className="flex justify-between items-center">
             <span className="text-gray-600">Discount ({discount}%)</span>
@@ -38,12 +37,12 @@ const PaymentSummary = ({ courseDetails }) => {
             </span>
           </div>
         )}
-        
+
         <div className="border-t pt-4 mt-4">
           <div className="flex justify-between items-center">
             <span className="text-lg font-semibold">Total</span>
             <span className="text-lg font-semibold text-blue-600">
-              ${finalPrice.toFixed(2)}
+              ${finalPrice}
             </span>
           </div>
         </div>

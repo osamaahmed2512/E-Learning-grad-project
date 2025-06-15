@@ -259,7 +259,7 @@ const StudentSignUp = () => {
   
       axios({
         method: 'post',
-        url: 'https://localhost:7018/api/Auth/Register',
+        url: 'https://learnify.runasp.net/api/Auth/Register',
         data: formDataToSend,
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -487,7 +487,7 @@ const StudentSignUp = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className={`w-full rounded-lg bg-blue-600 px-5 py-3 text-sm font-medium text-white 
+              className={`w-full rounded-lg bg-blue-600 px-5 py-3 text-sm font-medium text-white cursor-pointer
                 ${isLoading ? 'opacity-75 cursor-not-allowed' : 'hover:bg-blue-700'} 
                 focus:outline-none focus:ring-4 focus:ring-blue-300
                 transition-all duration-200 transform hover:scale-[1.02]

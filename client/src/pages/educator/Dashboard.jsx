@@ -18,7 +18,7 @@ const Dashboard = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const itemsPerPage = 5;
-  const API_BASE_URL = 'https://localhost:7018';
+  const API_BASE_URL = 'https://learnify.runasp.net';
 
   // Animation variants
   const containerVariants = {
@@ -135,12 +135,12 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen p-2 sm:p-4 md:p-6 lg:p-8">
+    <div className="flex min-h-screen">
+      <main className="fade-in-up w-full md:flex-1 p-2 sm:p-4 md:p-6 lg:p-8 overflow-x-auto">
       <ToastContainer position="bottom-right" autoClose={5000} hideProgressBar theme="colored" />
-      
         {/* Stats Grid */}
       <motion.div 
-        className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
+          className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-8"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -170,17 +170,23 @@ const Dashboard = () => {
             iconBg="bg-emerald-500"
           />
       </motion.div>
-
-      {/* Enrollments Table */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 flex items-center gap-2">
-            <FiUsers className="text-blue-500" />
-            My Latest Enrollments
-          </h2>
+        {/* Responsive Enrollments Cards for Mobile */}
+        <div className="block lg:hidden space-y-3 sm:space-y-4">
+          {currentItems.length > 0 ? (
+            currentItems.map((enrollment, idx) => (
+              <div key={idx} className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 space-y-2">
+                <div className="font-medium text-base text-gray-800">{enrollment.student_name}</div>
+                <div className="text-sm text-gray-600">Email: {enrollment.student_email}</div>
+                <div className="text-sm text-gray-500">Course: {enrollment.course_title}</div>
+                <div className="text-sm text-gray-500">Enrolled: {formatDate(enrollment.subscription_date)}</div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center text-gray-500 py-8">No enrollments found.</div>
+          )}
         </div>
-
-        <div className="bg-white rounded-lg shadow overflow-x-auto">
+        {/* Desktop Table for lg+ */}
+        <div className="hidden lg:block bg-white rounded-lg shadow overflow-x-auto">
           <table className="min-w-full">
             <thead className="bg-gray-100">
               <tr>
@@ -210,7 +216,7 @@ const Dashboard = () => {
               </tbody>
             </table>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

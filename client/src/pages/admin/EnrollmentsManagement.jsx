@@ -17,34 +17,6 @@ const toastConfig = {
   theme: "colored",
 };
 
-const showToast = {
-  success: (message) => {
-    toast.success(message, {
-      ...toastConfig,
-      className: 'bg-green-600',
-      bodyClassName: 'font-medium',
-      progressClassName: 'bg-green-300'
-    });
-  },
-  error: (message) => {
-    toast.error(message, {
-      ...toastConfig,
-      icon: <FaExclamationCircle />,
-      className: 'bg-red-600',
-      bodyClassName: 'font-medium',
-      progressClassName: 'bg-red-300'
-    });
-  },
-  warning: (message) => {
-    toast.warning(message, {
-      ...toastConfig,
-      className: 'bg-yellow-600',
-      bodyClassName: 'font-medium text-gray-900',
-      progressClassName: 'bg-yellow-300'
-    });
-  }
-};
-
 const formatDateTime = (dateString) => {
   const date = new Date(dateString);
   const year = date.getFullYear();
@@ -66,15 +38,22 @@ const EnrollmentsManagement = () => {
   const [selectedEnrollment, setSelectedEnrollment] = useState(null);
   const [totalPages, setTotalPages] = useState(1);
   const enrollmentsPerPage = 5;
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
 
   useEffect(() => {
     fetchEnrollments();
   }, [currentPage, searchQuery]);
 
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 640);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const fetchEnrollments = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('https://localhost:7018/api/Subscription/GetALLEnrollments', {
+      const response = await axios.get('https://learnify.runasp.net/api/Subscription/GetALLEnrollments', {
         params: {
           page: currentPage,
           pageSize: enrollmentsPerPage,
@@ -110,20 +89,36 @@ const EnrollmentsManagement = () => {
     if (!window.confirm('Are you sure you want to unsubscribe this enrollment? \nThis action cannot be undone.')) return;
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.delete(`https://localhost:7018/api/Subscription/Removesubscribe/${student_id}/${course_id}`, {
+      const response = await axios.delete(`https://learnify.runasp.net/api/Subscription/Removesubscribe/${student_id}/${course_id}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
       if (response.data && response.data.message) {
-        showToast.success(response.data.message);
+        toast.success(response.data.message, {
+          ...toastConfig,
+          className: 'bg-green-600',
+          bodyClassName: 'font-medium',
+          progressClassName: 'bg-green-300'
+        });
         fetchEnrollments();
       } else {
-        showToast.success('Unsubscribed successfully');
+        toast.success('Unsubscribed successfully', {
+          ...toastConfig,
+          className: 'bg-green-600',
+          bodyClassName: 'font-medium',
+          progressClassName: 'bg-green-300'
+        });
         fetchEnrollments();
       }
     } catch (error) {
-      showToast.error('Failed to unsubscribe');
+      toast.error('Failed to unsubscribe', {
+        ...toastConfig,
+        icon: <FaExclamationCircle />,
+        className: 'bg-red-600',
+        bodyClassName: 'font-medium',
+        progressClassName: 'bg-red-300'
+      });
     }
   };
 
@@ -153,7 +148,8 @@ const EnrollmentsManagement = () => {
   };
 
   return (
-    <div className="min-h-screen p-4 sm:p-6 md:p-8">
+    <div className="flex min-h-screen">
+      <main className="w-full md:flex-1 p-2 sm:p-4 md:p-6 lg:p-8 overflow-x-auto">
       <ToastContainer
         position="bottom-right"
         autoClose={5000}
@@ -176,10 +172,10 @@ const EnrollmentsManagement = () => {
         <div className="relative flex-grow">
           <input
             type="text"
-            placeholder="Search by student or course..."
+            placeholder={isMobile ? "Search student or course..." : "Search by student or course..."}
             value={searchQuery}
             onChange={handleSearchChange}
-            className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-text"
+            className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-text text-sm sm:text-base placeholder:text-gray-400 min-w-0"
           />
           <FiSearch className="absolute left-3 top-2.5 text-gray-400 w-5 h-5" />
         </div>
@@ -378,6 +374,7 @@ const EnrollmentsManagement = () => {
           </div>
         </>
       )}
+      </main>
     </div>
   );
 };

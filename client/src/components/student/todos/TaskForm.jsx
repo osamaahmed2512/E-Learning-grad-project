@@ -4,25 +4,42 @@ import { useTodo } from '../../../context/TodoContext';
 const TaskForm = () => {
   const { handleAddTask } = useTodo();
   const [taskData, setTaskData] = useState({
-    task: "",
+    title: "",
     status: "todo"
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!taskData.task.trim()) return;
+    if (!taskData.title.trim()) return;
     
-    handleAddTask(taskData);
-    setTaskData({
-      task: "",
-      status: "todo"
-    });
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      await handleAddTask(taskData);
+      setTaskData({
+        title: "",
+        status: "todo"
+      });
+    } catch (err) {
+      setError(err.message || 'Failed to add task');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="bg-gradient-to-b from-cyan-100/70">
+    <div className="">
       <div className="container mx-auto px-4 py-8">
         <form onSubmit={handleSubmit} className="max-w-3xl mx-auto space-y-4">
+          {error && (
+            <div className="text-red-500 text-sm mb-2">
+              {error}
+            </div>
+          )}
+          
           <input
             type="text"
             className="w-full p-4 text-lg font-medium bg-white/90 backdrop-blur-sm border border-cyan-200 
@@ -30,8 +47,9 @@ const TaskForm = () => {
                      focus:ring-cyan-500 focus:border-transparent transition-all duration-200
                      shadow-sm hover:shadow-md"
             placeholder="What needs to be done?"
-            value={taskData.task}
-            onChange={(e) => setTaskData(prev => ({ ...prev, task: e.target.value }))}
+            value={taskData.title}
+            onChange={(e) => setTaskData(prev => ({ ...prev, title: e.target.value }))}
+            disabled={isLoading}
           />
 
           <div className="flex flex-col md:flex-row gap-4 items-center">
@@ -45,11 +63,12 @@ const TaskForm = () => {
                          rounded-lg text-gray-700 focus:outline-none focus:ring-2 
                          focus:ring-cyan-500 transition-all duration-200 cursor-pointer
                          appearance-none bg-no-repeat bg-right pr-10
-                         hover:bg-cyan-50/90 font-medium"
+                         hover:bg-cyan-50/90 font-medium disabled:opacity-50"
                 style={{
                   backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23666666'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E\")",
                   backgroundSize: "1.5em"
                 }}
+                disabled={isLoading}
               >
                 <option value="todo" className="py-2">To Do</option>
                 <option value="doing" className="py-2">In Progress</option>
@@ -61,10 +80,12 @@ const TaskForm = () => {
                 className="px-6 py-2.5 bg-gradient-to-r from-cyan-600 to-cyan-700 text-white rounded-lg 
                          hover:from-cyan-700 hover:to-cyan-800
                          transition-all duration-200 font-medium flex items-center gap-2
-                         shadow-sm hover:shadow-md cursor-pointer transform hover:translate-y-[-1px]"
+                         shadow-sm hover:shadow-md cursor-pointer transform hover:translate-y-[-1px]
+                         disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isLoading}
               >
                 <span className="text-xl">+</span>
-                Add Task
+                {isLoading ? 'Adding...' : 'Add Task'}
               </button>
             </div>
           </div>

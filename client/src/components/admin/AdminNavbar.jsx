@@ -180,10 +180,10 @@ const AdminNavbar = () => {
           }}
           className={`
             ${isMobile ? 
-              'fixed right-3 top-[74px] w-[55%] max-h-[80vh]' : 
+              'fixed right-3 top-[74px] w-[55%] max-h-[70vh]' : 
               'absolute right-0 w-80'}
             bg-white rounded-xl shadow-2xl 
-            py-3 z-[9999] border border-gray-200/80 
+            py-2 z-[9999] border border-gray-200/80 
             overflow-y-auto origin-top-right
           `}
         >
@@ -204,7 +204,7 @@ const AdminNavbar = () => {
             </button>
           )}
 
-          <div className="px-4 py-3 border-b border-gray-100 bg-white">
+          <div className="px-4 py-2 border-b border-gray-100 bg-white">
             <div className="flex items-center gap-4 mb-3">
               <div className="relative flex-shrink-0">
                 <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-50 to-white
@@ -224,13 +224,13 @@ const AdminNavbar = () => {
             </div>
           </div>
 
-          <div className="py-2 bg-white">
+          <div className="py-1 bg-white">
             {items.map((item, index) => (
               <motion.div 
                 key={index}
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ 
+                transition={{
                   delay: index * 0.05,
                   duration: 0.2,
                   ease: "easeOut"
@@ -239,7 +239,7 @@ const AdminNavbar = () => {
                 {item.path ? (
                   <Link
                     to={item.path}
-                    className="flex items-center px-4 py-3 hover:bg-gray-50 
+                    className="flex items-center px-4 py-1 hover:bg-gray-50 
                       cursor-pointer group transition-colors duration-150"
                     onClick={(e) => handleMenuItemClick(item, e)}
                   >
@@ -248,7 +248,7 @@ const AdminNavbar = () => {
                 ) : (
                   <button
                     onClick={(e) => handleMenuItemClick(item, e)}
-                    className="w-full flex items-center px-4 py-3 hover:bg-gray-50 
+                    className="w-full flex items-center px-4 py-1 hover:bg-gray-50 
                       cursor-pointer group transition-colors duration-150"
                   >
                     <MenuItemContent item={item} />
@@ -263,17 +263,15 @@ const AdminNavbar = () => {
   );
 
   const MenuItemContent = ({ item }) => (
-    <div className="flex items-center gap-3 flex-1 min-w-0">
-      <span className="w-10 h-10 flex items-center justify-center rounded-lg 
+    <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0 py-0.5 md:py-2">
+      <span className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-lg 
         bg-gray-50 group-hover:bg-white transition-colors shadow-sm
         group-hover:shadow-md group-hover:scale-105 transform duration-200">
         {item.icon}
       </span>
       <div>
-        <p className={`text-sm font-medium ${item.className || 'text-gray-700'}`}>
-          {item.label}
-        </p>
-        <p className="text-xs text-gray-500">{item.description}</p>
+        <p className={`text-xs md:text-sm font-medium ${item.className || 'text-gray-700'}`}>{item.label}</p>
+        <p className="text-xs text-gray-500 hidden md:block">{item.description}</p>
       </div>
     </div>
   );
@@ -334,35 +332,35 @@ const AdminNavbar = () => {
         </div>
 
         {isAuthenticated ? (
-          <Menu as="div" className="relative z-[999]">
+          <Menu as="div" className="relative">
             {({ open }) => (
               <>
                 <Menu.Button
-              className={`
-                flex items-center gap-3 p-2.5 rounded-xl 
-                transition-all duration-300 
-                border border-transparent
+                  className={`
+                    flex items-center gap-3 p-2.5 rounded-xl 
+                    transition-all duration-300 
+                    border border-transparent
                     cursor-pointer outline-none focus:outline-none
                     ${open ? 
-                  'bg-blue-50 border-blue-200 shadow-inner' : 
+                      'bg-blue-50 border-blue-200 shadow-inner' : 
                       'hover:bg-white/80 hover:border-gray-200 hover:shadow-lg hover:-translate-y-0.5'
                     }
-              `}
-            >
-              <UserAvatar />
-              <span className={`
-                font-medium transition-colors duration-300 
+                  `}
+                >
+                  <UserAvatar />
+                  <span className={`
+                    font-medium transition-colors duration-300 
                     ${open ? 'text-blue-600' : 'text-gray-700'}
-              `}>
-                {user?.name}
-              </span>
-              <IoMdArrowDropdown 
-                className={`
-                  transition-all duration-300 
+                  `}>
+                    {user?.name}
+                  </span>
+                  <IoMdArrowDropdown 
+                    className={`
+                      transition-all duration-300 
                       ${open ? 'rotate-180 text-blue-600' : 'text-gray-500'}
-                `} 
-                size={20}
-              />
+                    `} 
+                    size={20}
+                  />
                 </Menu.Button>
 
                 <Transition
@@ -374,11 +372,11 @@ const AdminNavbar = () => {
                   leaveFrom="transform opacity-100 scale-100"
                   leaveTo="transform opacity-0 scale-95"
                 >
-                  <Menu.Items className="absolute right-0 mt-2 w-80 origin-top-right rounded-xl bg-white shadow-2xl py-3 border border-gray-200/80 z-[9999] focus:outline-none ring-0">
-                    <div className="px-4 py-3 border-b border-gray-100">
-                      <div className="flex items-center gap-4 mb-3">
+                  <Menu.Items className={`absolute right-0 mt-2 w-80 origin-top-right rounded-xl bg-white shadow-2xl py-3 border border-gray-200/80 focus:outline-none ring-0 ${open ? 'z-[9999]' : 'z-[997]'}`}>
+                    <div className="px-2 py-0 md:px-4 md:py-3 border-b border-gray-100">
+                      <div className="flex items-center gap-1 md:gap-4 mb-1 md:mb-3">
                         <div className="relative flex-shrink-0">
-                          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-50 to-white
+                          <div className="w-10 h-10 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-blue-50 to-white
                             shadow-inner flex items-center justify-center overflow-hidden">
                             {user?.image_url ? (
                               <img 
@@ -397,7 +395,7 @@ const AdminNavbar = () => {
                           <p className="text-base font-semibold text-gray-900 truncate">
                             {user?.name}
                           </p>
-                          <p className="text-sm text-gray-500 truncate">
+                          <p className="text-[10px] md:text-sm text-gray-500 truncate break-all max-w-[120px] md:max-w-none ml-1 md:ml-0">
                             {user?.email}
                           </p>
                         </div>
@@ -408,14 +406,14 @@ const AdminNavbar = () => {
                       </div>
                 </div>
 
-                    <div className="py-2">
+                    <div className="py-1">
                       {getMenuItems().map((item, index) => (
                         <Menu.Item key={index}>
                           {({ active }) => (
                             item.path ? (
                               <Link
                                 to={item.path}
-                                className={`flex items-center px-4 py-3 ${
+                                className={`flex items-center px-4 py-1 ${
                                   active ? 'bg-gray-50' : ''
                                 } cursor-pointer group transition-colors duration-150 outline-none focus:outline-none`}
                               >
@@ -424,7 +422,7 @@ const AdminNavbar = () => {
                             ) : (
                               <button
                                 onClick={item.onClick}
-                                className={`w-full flex items-center px-4 py-3 ${
+                                className={`w-full flex items-center px-4 py-1 ${
                                   active ? 'bg-gray-50' : ''
                                 } cursor-pointer group transition-colors duration-150 outline-none focus:outline-none`}
                               >
@@ -500,28 +498,28 @@ const AdminNavbar = () => {
               </Link>
             </div>
 
-            <Menu as="div" className="relative z-[999]">
+            <Menu as="div" className="relative">
               {({ open }) => (
                 <>
                   <Menu.Button
-                className={`
-                  flex items-center gap-2 p-1.5 sm:p-2 rounded-xl
-                  transition-all duration-300 border border-transparent
+                    className={`
+                      flex items-center gap-2 p-1.5 sm:p-2 rounded-xl
+                      transition-all duration-300 border border-transparent
                       cursor-pointer outline-none focus:outline-none
                       ${open ? 
-                    'bg-blue-50 border-blue-200 scale-95' : 
+                        'bg-blue-50 border-blue-200 scale-95' : 
                         'hover:bg-white/50 active:scale-95'
                       }
-                `}
-              >
-                <UserAvatar size="small" />
-                <IoMdArrowDropdown 
-                  className={`
-                    transition-all duration-300 
+                    `}
+                  >
+                    <UserAvatar size="small" />
+                    <IoMdArrowDropdown 
+                      className={`
+                        transition-all duration-300 
                         ${open ? 'rotate-180 text-blue-600' : 'text-gray-500'}
-                  `}
-                  size={18}
-                />
+                      `}
+                      size={18}
+                    />
                   </Menu.Button>
 
                   <Transition
@@ -533,11 +531,11 @@ const AdminNavbar = () => {
                     leaveFrom="transform opacity-100 scale-100"
                     leaveTo="transform opacity-0 scale-95"
                   >
-                    <Menu.Items className="fixed right-3 top-[74px] w-[55%] max-h-[80vh] rounded-xl bg-white shadow-2xl py-3 border border-gray-200/80 z-[9999] focus:outline-none ring-0">
-                      <div className="px-4 py-3 border-b border-gray-100">
-                        <div className="flex items-center gap-4 mb-3">
+                    <Menu.Items className={`fixed right-3 top-[74px] w-[55%] max-h-[70vh] rounded-xl bg-white shadow-2xl py-2 border border-gray-200/80 focus:outline-none ring-0 ${open ? 'z-[9999]' : 'z-[997]'}`}>
+                      <div className="px-2 py-0 md:px-4 md:py-3 border-b border-gray-100">
+                        <div className="flex items-center gap-1 md:gap-4 mb-1 md:mb-3">
                           <div className="relative flex-shrink-0">
-                            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-50 to-white
+                            <div className="w-10 h-10 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-blue-50 to-white
                               shadow-inner flex items-center justify-center overflow-hidden">
                               {user?.image_url ? (
                                 <img 
@@ -556,7 +554,7 @@ const AdminNavbar = () => {
                             <p className="text-base font-semibold text-gray-900 truncate">
                               {user?.name}
                             </p>
-                            <p className="text-sm text-gray-500 truncate">
+                            <p className="text-[10px] md:text-sm text-gray-500 truncate break-all max-w-[120px] md:max-w-none ml-1 mb-2 md:ml-0">
                               {user?.email}
                             </p>
                           </div>
@@ -567,14 +565,14 @@ const AdminNavbar = () => {
                         </div>
                       </div>
 
-                      <div className="py-2">
+                      <div className="py-1">
                         {getMenuItems().map((item, index) => (
                           <Menu.Item key={index}>
                             {({ active }) => (
                               item.path ? (
                                 <Link
                                   to={item.path}
-                                  className={`flex items-center px-4 py-3 ${
+                                  className={`flex items-center px-4 py-1 ${
                                     active ? 'bg-gray-50' : ''
                                   } cursor-pointer group transition-colors duration-150 outline-none focus:outline-none`}
                                 >
@@ -583,7 +581,7 @@ const AdminNavbar = () => {
                               ) : (
                                 <button
                                   onClick={item.onClick}
-                                  className={`w-full flex items-center px-4 py-3 ${
+                                  className={`w-full flex items-center px-4 py-1 ${
                                     active ? 'bg-gray-50' : ''
                                   } cursor-pointer group transition-colors duration-150 outline-none focus:outline-none`}
                                 >

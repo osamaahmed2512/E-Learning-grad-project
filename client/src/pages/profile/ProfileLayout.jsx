@@ -69,7 +69,7 @@ const ProfileLayout = () => {
         {renderNavbar()}
       </div>
 
-      <div className="flex pt-19"> {/* Added pt-19 to account for fixed navbar */}
+      <div className="flex pt-18 md:pt-19"> {/* Responsive: less top padding on mobile, more on desktop for fixed navbar */}
         {/* ProfileSidebar Container with sticky positioning */}
         <div className="sticky top-19 self-start">
           <ProfileSidebar />

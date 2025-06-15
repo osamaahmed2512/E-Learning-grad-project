@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://localhost:7018/api/Auth';
+const API_BASE_URL = 'https://learnify.runasp.net/api/Auth';
 
 export const api = {
   async fetchUserDetails() {

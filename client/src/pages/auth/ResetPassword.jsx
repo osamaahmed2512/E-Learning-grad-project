@@ -107,7 +107,7 @@ const ResetPassword = () => {
       try {
         const response = await axios({
           method: 'post',
-          url: 'https://localhost:7018/api/Auth/ResetPassword',
+          url: 'https://learnify.runasp.net/api/Auth/ResetPassword',
           params: {
             resetToken: resetToken,
             newPassword: newPassword,

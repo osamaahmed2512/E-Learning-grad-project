@@ -1,45 +1,68 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { FaCheckCircle } from 'react-icons/fa';
 import PaymentStatus from '../../../components/student/payment/PaymentStatus';
+import axios from 'axios';
 
 const PaymentSuccess = () => {
-  const { courseId } = useParams();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [verifying, setVerifying] = useState(true);
   const [error, setError] = useState(null);
   const [enrollmentComplete, setEnrollmentComplete] = useState(false);
 
+  const courseId = searchParams.get('courseId');
+  const studentId = searchParams.get('studentId');
+
   useEffect(() => {
     const verifyPayment = async () => {
       try {
-        const sessionId = new URLSearchParams(window.location.search).get('session_id');
-        
-        const response = await fetch('/api/verify-payment', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            courseId,
-            sessionId
-          }),
-        });
+        console.log(`Payment successful for course ${courseId} by student ${studentId}`);
 
-        if (!response.ok) {
-          throw new Error('Payment verification failed');
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('Please login to verify your payment');
         }
 
-        setEnrollmentComplete(true);
+        // Wait for a few seconds to allow backend to process the webhook
+        await new Promise(resolve => setTimeout(resolve, 3000));
+
+        // Fetch course details to check if subscription is active
+        const response = await axios.get(
+          `https://learnify.runasp.net/api/Course/GetCourseByIdForStudent/${courseId}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          }
+        );
+
+        console.log('Course verification response:', response.data);
+
+        if (response.data && response.data.is_subscribed) {
+          setEnrollmentComplete(true);
+          // Redirect to enrollments page after successful verification
+          setTimeout(() => {
+            navigate('/my-enrollments');
+          }, 2000);
+        } else {
+          throw new Error('Payment verification failed. Please contact support.');
+        }
       } catch (err) {
-        setError('Payment verification failed. Please contact support.');
         console.error('Verification error:', err);
+        setError(err.message || 'Payment verification failed. Please contact support.');
       } finally {
         setVerifying(false);
       }
     };
 
-    verifyPayment();
-  }, [courseId]);
+    if (courseId && studentId) {
+      verifyPayment();
+    } else {
+      setError('Invalid course ID or student ID');
+      setVerifying(false);
+    }
+  }, [courseId, studentId, navigate]);
 
   if (verifying) {
     return <PaymentStatus status="verifying" />;
@@ -58,18 +81,18 @@ const PaymentSuccess = () => {
             Payment Successful!
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            Thank you for your purchase. You can now start learning!
+            Thank you for your purchase. Redirecting you to your enrollments...
           </p>
         </div>
 
         <div className="mt-8 space-y-4">
           <Link
-            to={`/player/${courseId}`}
+            to="/my-enrollments"
             className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
-            Start Learning
+            Go to My Enrollments
           </Link>
-          
+
           <Link
             to="/course-list"
             className="w-full flex justify-center py-3 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"

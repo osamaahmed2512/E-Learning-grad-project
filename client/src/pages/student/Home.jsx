@@ -7,6 +7,7 @@ import TestimonialsSection from '../../components/student/TestimonialsSection';
 import CallToAction from '../../components/student/CallToAction';
 import Footer from '../../components/student/Footer';
 import { useSelector } from 'react-redux';
+import Recommendation from '../../components/student/Recommendation';
 
 const HomePage = () => {
   const { user } = useSelector((state) => state.user);
@@ -35,6 +36,11 @@ const HomePage = () => {
       {/* Courses Section with fade-in and slide-up animation */}
       <div className="w-full opacity-0 translate-y-[20px] animate-[fadeIn_1s_ease-out_0.6s_forwards] transition-all duration-700">
         <CoursesSection />
+      </div>
+
+      {/* Recommendation Courses Section with fade-in and slide-up animation */}
+      <div className="w-full opacity-0 translate-y-[20px] animate-[fadeIn_1s_ease-out_0.6s_forwards] transition-all duration-700">
+        <Recommendation />
       </div>
 
       {/* Testimonials Section with fade-in and scale animation */}

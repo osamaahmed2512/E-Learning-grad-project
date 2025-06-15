@@ -211,7 +211,7 @@ const SecuritySettings = () => {
 
       const response = await axios({
         method: 'put',
-        url: 'https://localhost:7018/api/Auth/UpdateUser',
+        url: 'https://learnify.runasp.net/api/Auth/UpdateUser',
         data: formDataToSend,
         headers: {
           'Accept': '*/*',
@@ -264,8 +264,23 @@ const SecuritySettings = () => {
     }
   };
 
+  // Add fade-in and upward movement animation for the page
+  if (typeof document !== 'undefined') {
+    const styleSheet = document.createElement("style");
+    styleSheet.innerText += `
+      @keyframes securityFadeIn {
+        from { opacity: 0; transform: translateY(32px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .animate-security-fade-in {
+        animation: securityFadeIn 0.8s cubic-bezier(0.4,0,0.2,1);
+      }
+    `;
+    document.head.appendChild(styleSheet);
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-cyan-100/70 p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-b from-cyan-100/70 p-2 sm:p-4 md:p-6 overflow-x-auto">
       <ToastContainer
         position="bottom-right"
         autoClose={5000}
@@ -279,16 +294,16 @@ const SecuritySettings = () => {
         theme="colored"
         limit={1}
       />
-      <div className="max-w-xl mx-auto">
-        <div className="bg-white rounded-xl shadow-lg p-6 md:p-8">
+      <div className="w-full max-w-xs sm:max-w-sm md:max-w-xl mx-auto animate-security-fade-in">
+        <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 md:p-8">
           <div className="text-center mb-6">
             <div className="bg-cyan-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-2">
               <FaShieldAlt className="text-3xl text-cyan-600" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-800">Security Settings</h1>
+            <h1 className="text-lg sm:text-2xl font-bold text-gray-800">Security Settings</h1>
           </div>
-          <div className="p-6">
-            <h2 className="text-xl font-semibold flex items-center gap-2 mb-6">
+          <div className="p-2 sm:p-6">
+            <h2 className="text-base sm:text-xl font-semibold flex items-center gap-2 mb-6">
               <FaKey className="text-cyan-600" />
               Change Password
             </h2>

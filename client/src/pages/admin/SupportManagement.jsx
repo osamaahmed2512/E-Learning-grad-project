@@ -5,7 +5,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 // Configure axios defaults
-axios.defaults.baseURL = 'https://localhost:7018';
+axios.defaults.baseURL = 'https://learnify.runasp.net';
 axios.defaults.timeout = 10000;
 axios.defaults.headers.common['Accept'] = 'application/json';
 
@@ -32,6 +32,7 @@ const SupportManagement = () => {
   const [exporting, setExporting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const messagesPerPage = 5;
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
 
   const handleNextPage = () => {
     setCurrentPage(prev => prev + 1);
@@ -82,6 +83,12 @@ const SupportManagement = () => {
   useEffect(() => {
     fetchMessages();
   }, [currentPage, sortingOrder]);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 640);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const filteredMessages = messages.filter(message => {
     const matchesSearch = 
@@ -213,29 +220,29 @@ const SupportManagement = () => {
   };
 
   return (
-    <div className="min-h-screen p-4 sm:p-6 md:p-8">
-      <h1 className="text-xl sm:text-2xl font-semibold mb-6">Support Management</h1>
+    <div className="flex min-h-screen">
+      <main className="w-full md:flex-1 p-2 sm:p-4 md:p-6 lg:p-8 overflow-x-auto">
+        <h1 className="text-xl sm:text-2xl font-semibold mb-6">Support Management</h1>
 
-      {/* Search and Controls */}
-      <div className="flex flex-col gap-4 mb-6">
-        <div className="flex flex-col sm:flex-row gap-4">
+        {/* Search and Controls */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <div className="flex-1">
-            <div className="flex items-center bg-white border border-gray-300 rounded-md overflow-hidden">
-              <FiSearch className="text-gray-500 mx-3" size={20} />
+            <div className="flex items-center bg-white border border-gray-300 rounded-lg overflow-hidden transition-all duration-200 hover:border-blue-400 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200">
+              <FiSearch className="text-gray-500 mx-2 sm:mx-3 cursor-pointer" size={20} />
               <input
                 type="text"
                 placeholder="Search by email or message..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="p-2 w-full outline-none"
+                className="p-2.5 w-full outline-none text-sm sm:text-base placeholder-gray-400 cursor-text"
               />
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:ml-auto justify-end">
             <button
               onClick={handleExportData}
               disabled={loading || exporting}
-              className="flex items-center justify-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 text-sm sm:text-base cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="flex items-center justify-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 text-sm sm:text-base cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed w-full sm:w-auto"
             >
               <FiDownload className={`w-4 h-4 sm:w-5 sm:h-5 ${exporting ? 'animate-pulse' : ''}`} />
               {exporting ? 'Exporting...' : 'Export Data'}
@@ -243,7 +250,7 @@ const SupportManagement = () => {
             <button
               onClick={() => setSortingOrder(prev => prev === 'Ascending' ? 'Descending' : 'Ascending')}
               disabled={loading}
-              className="flex items-center justify-center gap-2 bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 text-sm sm:text-base cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="flex items-center justify-center gap-2 bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 text-sm sm:text-base cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed w-full sm:w-auto"
             >
               {sortingOrder === 'Ascending' ? (
                 <><FiArrowUp className="w-4 h-4" /> Newest First</>
@@ -253,136 +260,134 @@ const SupportManagement = () => {
             </button>
           </div>
         </div>
-      </div>
 
-      {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-        </div>
-      ) : filteredMessages.length === 0 ? (
-        <div className="flex justify-center items-center h-64">
-          <span className="text-gray-500">
-            {searchQuery ? "No messages found matching your search" : "No messages found"}
-          </span>
-        </div>
-      ) : (
-        <>
-          {/* Desktop View */}
-          <div className="hidden md:block bg-white rounded-lg shadow overflow-hidden">
-            <table className="min-w-full">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Email</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Message</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Date</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {filteredMessages.map((message) => (
-                  <tr key={message.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-sm">
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          </div>
+        ) : filteredMessages.length === 0 ? (
+          <div className="flex justify-center items-center h-64">
+            <span className="text-gray-500">
+              {searchQuery ? "No messages found matching your search" : "No messages found"}
+            </span>
+          </div>
+        ) : (
+          <>
+            {/* Desktop View */}
+            <div className="hidden md:block bg-white rounded-lg shadow overflow-x-auto">
+              <table className="min-w-full w-full table-fixed divide-y divide-gray-200">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Email</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Message</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Date</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {filteredMessages.map((message) => (
+                    <tr key={message.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 text-sm">
+                        <button
+                          onClick={() => handleEmailClick(message.email, message.message)}
+                          className="text-blue-500 hover:text-blue-700 flex items-center gap-1 cursor-pointer"
+                        >
+                          <FiMail className="w-4 h-4" />
+                          {message.email}
+                        </button>
+                      </td>
+                      <td className="px-4 py-3 text-sm">{message.message}</td>
+                      <td className="px-4 py-3 text-sm">{formatDate(message.date)}</td>
+                      <td className="px-4 py-3 text-sm">
+                        <button
+                          onClick={() => handleDeleteMessage(message.id)}
+                          className="text-red-500 hover:text-red-700 cursor-pointer"
+                        >
+                          <FiTrash className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile View - Cards */}
+            <div className="block md:hidden space-y-3 sm:space-y-4">
+              {filteredMessages.map((message) => (
+                <div key={message.id} className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                    <div>
                       <button
                         onClick={() => handleEmailClick(message.email, message.message)}
-                        className="text-blue-500 hover:text-blue-700 flex items-center gap-1 cursor-pointer"
+                        className="text-blue-500 hover:text-blue-700 flex items-center gap-1 text-sm cursor-pointer"
                       >
                         <FiMail className="w-4 h-4" />
                         {message.email}
                       </button>
-                    </td>
-                    <td className="px-4 py-3 text-sm">{message.message}</td>
-                    <td className="px-4 py-3 text-sm">
-                      {formatDate(message.date)}
-                    </td>
-                    <td className="px-4 py-3 text-sm">
+                    </div>
+                    <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleDeleteMessage(message.id)}
-                        className="text-red-500 hover:text-red-700 cursor-pointer"
+                        className="text-red-500 hover:text-red-700 cursor-pointer p-1"
                       >
                         <FiTrash className="w-4 h-4" />
                       </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Mobile View */}
-          <div className="md:hidden space-y-4">
-            {filteredMessages.map((message) => (
-              <div key={message.id} className="bg-white p-4 rounded-lg shadow">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <button
-                      onClick={() => handleEmailClick(message.email, message.message)}
-                      className="text-blue-500 hover:text-blue-700 flex items-center gap-1 text-sm cursor-pointer"
-                    >
-                      <FiMail className="w-4 h-4" />
-                      {message.email}
-                    </button>
+                    </div>
                   </div>
-                  <button
-                    onClick={() => handleDeleteMessage(message.id)}
-                    className="text-red-500 hover:text-red-700 cursor-pointer"
-                  >
-                    <FiTrash className="w-4 h-4" />
-                  </button>
+                  <p className="text-sm text-gray-600 mb-2">{message.message}</p>
+                  <p className="text-xs text-gray-500">{formatDate(message.date)}</p>
                 </div>
-                <p className="text-sm text-gray-600 mb-2">{message.message}</p>
-                <p className="text-xs text-gray-500">
-                  {formatDate(message.date)}
-                </p>
-              </div>
-            ))}
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* Pagination Controls */}
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mt-4 md:mt-6">
+          <span className="text-gray-700 text-sm md:text-base">
+            Page {currentPage} of {totalPages}
+          </span>
+          <div className="flex gap-2">
+            <button
+              onClick={handlePreviousPage}
+              disabled={currentPage === 1}
+              className={`p-2 rounded-md flex items-center justify-center ${
+                currentPage === 1 
+                  ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                  : 'bg-blue-500 text-white hover:bg-blue-600 cursor-pointer'
+              }`}
+            >
+              <FiChevronLeft className="w-5 h-5" />
+            </button>
+            <button
+              onClick={handleNextPage}
+              disabled={messages.length < messagesPerPage}
+              className={`p-2 rounded-md flex items-center justify-center ${
+                messages.length < messagesPerPage
+                  ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                  : 'bg-blue-500 text-white hover:bg-blue-600 cursor-pointer'
+              }`}
+            >
+              <FiChevronRight className="w-5 h-5" />
+            </button>
           </div>
-        </>
-      )}
-
-      {/* Pagination Controls */}
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mt-4 md:mt-6">
-        <span className="text-gray-700 text-sm md:text-base">
-          Page {currentPage} of {totalPages}
-        </span>
-        <div className="flex gap-2">
-          <button
-            onClick={handlePreviousPage}
-            disabled={currentPage === 1}
-            className={`p-2 rounded-md flex items-center justify-center ${
-              currentPage === 1 
-                ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
-                : 'bg-blue-500 text-white hover:bg-blue-600 cursor-pointer'
-            }`}
-          >
-            <FiChevronLeft className="w-5 h-5" />
-          </button>
-          <button
-            onClick={handleNextPage}
-            disabled={messages.length < messagesPerPage}
-            className={`p-2 rounded-md flex items-center justify-center ${
-              messages.length < messagesPerPage
-                ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
-                : 'bg-blue-500 text-white hover:bg-blue-600 cursor-pointer'
-            }`}
-          >
-            <FiChevronRight className="w-5 h-5" />
-          </button>
         </div>
-      </div>
 
-      {/* Toast Container */}
-      <ToastContainer
-        position="bottom-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="colored"
-      />
+        {/* Toast Container */}
+        <ToastContainer
+          position="bottom-right"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="colored"
+        />
+      </main>
     </div>
   );
 };
