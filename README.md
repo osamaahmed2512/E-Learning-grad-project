@@ -1,208 +1,269 @@
-# E-Learning Platform - Graduation Project
+🎮 Gamified Learning Management System (LMS)
+A comprehensive, modern learning management system that combines gamification elements with advanced AI-powered features to enhance the learning experience.
+🌟 Project Overview
+This full-stack learning management system revolutionizes online education through:
 
-## Project Overview
+Gamified Learning Experience with progress tracking, achievements, and roadmaps
+AI-Powered Recommendations using machine learning algorithms
+Intelligent Learning Support through RAG (Retrieval Augmented Generation) system
+Modern UI/UX with responsive design and smooth animations
+Comprehensive Course Management for instructors and administrators
 
-This repository contains the source code for an e-learning platform, developed as a graduation project. The platform enables students to browse and enroll in courses, manage learning tasks (flashcards, to-do lists, timers), and make payments. Instructors can create content, and admins can manage the system. The backend is built with ASP.NET Core, while the frontend is a React single-page application, providing a seamless user experience.
+🏗️ System Architecture
+├── 🎯 Frontend (React.js + Vite)
+├── ⚙️ Backend (ASP.NET Core 8.0)
+└── 🤖 Machine Learning
+    ├── Recommendation System (FastAPI)
+    └── RAG System (LangChain + Flask)
+🚀 Key Features
+👨‍🎓 Student Features
 
-## Objectives
+Personalized Dashboard with learning analytics
+Gamified Progress Tracking with achievements and badges
+AI-Powered Course Recommendations based on learning history
+Interactive Learning Roadmaps with 3-7 customizable stages
+Focus Timer (Pomodoro) for productive learning sessions
+Flashcards System for enhanced memorization
+Todo Management with progress tracking
+Course Enrollment with secure payment integration
+Video-Based Learning with progress tracking
 
-- Provide a robust e-learning environment for students, instructors, and admins.
-- Demonstrate proficiency in full-stack development, API design, and payment integration.
-- Showcase secure authentication, scalable architecture, and user-friendly features as part of a graduation project.
+👨‍🏫 Instructor Features
 
-## Tech Stack
+Comprehensive Dashboard with enrollment and earnings analytics
+Course Creation & Management with rich text editing
+Student Progress Monitoring and engagement metrics
+Video Content Management with automatic processing
+Section-Based Course Organization for structured learning
+Real-Time Analytics for course performance
 
-### Backend:
-- **Framework**: ASP.NET Core
-- **Database**: SQL Server (Entity Framework Core)
-- **Authentication**: JWT
-- **Payment Gateway**: Stripe
-- **Other**: Azure services, Email integration, Memory caching
+👨‍💼 Admin Features
 
-### Frontend:
-- **Framework**: React
-- **Styling**: Tailwind CSS
-- **HTTP Client**: Axios
-- **Payment**: Stripe.js
-- **Environment**: Node.js
+User Management (Students, Instructors, Admins)
+Course Approval & Management system
+Payment Processing and revenue tracking
+Teacher Registration Approval workflow
+Category Management for course organization
+Support Ticket Management system
+Comprehensive Analytics Dashboard
 
-## Setup Instructions
+🛠️ Technical Stack
+Frontend
 
-### Prerequisites
+React.js with Vite for fast development
+Redux Toolkit for state management
+Tailwind CSS for modern styling
+Headless UI for accessible components
+Framer Motion for smooth animations
+React DnD for drag-and-drop functionality
+Chart.js for data visualization
+React Quill for rich text editing
 
-- **Backend**: .NET SDK 6.0+, SQL Server
-- **Frontend**: Node.js 16+, npm
-- **Services**: Stripe account, Azure account (optional for email/storage)
+Backend
 
-### Backend Setup
+ASP.NET Core 8.0 for robust API development
+Entity Framework Core for data access
+SQL Server for reliable data storage
+JWT Authentication for secure access
+Swagger/OpenAPI for API documentation
+FFmpeg for video processing
+MailKit for email services
+Polly for resilience patterns
 
-1. **Clone the Repository**:
-   ```bash
-   git clone <repository-url>
-   cd elearning-platform/backend
-Install Dependencies:
+Machine Learning
 
-bash
-نسخ
-تحرير
+FastAPI for high-performance ML API
+LangChain for LLM orchestration
+Sentence Transformers for embeddings
+Qdrant for vector database
+Scikit-learn for ML algorithms
+Hugging Face models integration
+
+Payment & Integration
+
+Stripe and Razorpay for payment processing
+YouTube API for video content integration
+
+🤖 AI & Machine Learning Features
+1. Intelligent Recommendation System
+
+Collaborative Filtering based on user behavior
+Content-Based Filtering using course features
+Hybrid Approach combining multiple algorithms
+Real-Time Updates for dynamic recommendations
+Learning Style Analysis for personalized suggestions
+
+2. RAG (Retrieval Augmented Generation) System
+
+Context-Aware Q&A for learning support
+Semantic Search through course content
+Dynamic Knowledge Retrieval from course materials
+Real-Time Learning Assistance for students
+Vector Database Integration for efficient search
+
+📊 Gamification Elements
+Achievement System
+
+Progress Badges for milestones
+Focus Time Tracking with rewards
+Task Completion achievements
+Flashcard Creation goals
+Learning Streaks recognition
+
+Progress Visualization
+
+Interactive Dashboards with real-time updates
+Learning Roadmaps with stage-based progression
+Visual Progress Bars and charts
+Achievement Timelines for motivation
+Performance Analytics for self-improvement
+
+🎯 Learning Roadmap System
+Students receive personalized learning paths:
+
+Skill Assessment (Beginner/Intermediate/Advanced)
+Customizable Stages (3-7 stages per roadmap)
+AI-Generated Recommendations based on learning goals
+Progress Tracking through each stage
+Adaptive Content based on performance
+
+💳 Payment & Monetization
+
+Multi-Gateway Support (Stripe, Razorpay)
+Secure Payment Processing with verification
+Course Preview before purchase
+Transaction History and receipts
+Revenue Analytics for instructors
+Flexible Pricing models
+
+📱 Responsive Design
+
+Mobile-First Approach for all devices
+Progressive Web App capabilities
+Touch-Friendly Interface for mobile users
+Offline Support for downloaded content
+Cross-Browser Compatibility
+
+🔐 Security Features
+
+JWT-Based Authentication with refresh tokens
+Role-Based Authorization (Student/Instructor/Admin)
+Secure File Upload with validation
+Password Hashing using BCrypt
+Input Validation and sanitization
+HTTPS Enforcement for all communications
+
+📈 Analytics & Insights
+Student Analytics
+
+Learning time tracking
+Course completion rates
+Achievement progress
+Focus session statistics
+Performance trends
+
+Instructor Analytics
+
+Course enrollment metrics
+Student engagement data
+Revenue tracking
+Course performance insights
+Student progress monitoring
+
+Admin Analytics
+
+Platform usage statistics
+User growth metrics
+Revenue analytics
+Course popularity trends
+Support ticket analytics
+
+🚀 Installation & Setup
+Prerequisites
+
+Node.js (v16+)
+.NET 8.0 SDK
+SQL Server
+Python 3.8+
+Docker (optional)
+
+Backend Setup
+bashcd GraduationProject
 dotnet restore
-Configure Environment:
-Create appsettings.json in the backend root:
-
-json
-نسخ
-تحرير
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Server=<your-server>;Database=ElearningDB;Trusted_Connection=True;"
-  },
-  "Jwt": {
-    "Key": "<your-jwt-secret>",
-    "Issuer": "<your-issuer>",
-    "Audience": "<your-audience>"
-  },
-  "Stripe": {
-    "SecretKey": "<your-stripe-secret-key>",
-    "WebhookSecret": "<your-stripe-webhook-secret>"
-  },
-  "FrontendUrl": "http://localhost:3000"
-}
-Run Database Migrations:
-
-
-dotnet ef migrations add InitialCreate
 dotnet ef database update
-Run the Backend:
-
-
 dotnet run
-The API will run at https://localhost:7018.
-
 Frontend Setup
-Navigate to Frontend:
-
-
-cd elearning-platform/frontend
-Install Dependencies:
-
-
+bashcd client
 npm install
-Configure Environment:
-Create .env in the frontend root:
+npm run dev
+ML Systems Setup
+bash# Recommendation System
+cd ML/Recommendation\ system
+pip install -r requirements.txt
+uvicorn main:app --reload
 
+# RAG System
+cd ML/Retrieval\ Augmented\ Generation\ system\ \(RAGs\)
+pip install -r requirements.txt
+python app.py
+🌐 API Documentation
+The backend provides comprehensive RESTful APIs:
 
-REACT_APP_API_URL=https://localhost:7018
-REACT_APP_STRIPE_PUBLISHABLE_KEY=pk_test_<your-stripe-publishable-key>
-Run the Frontend:
+Authentication APIs - Login, Register, JWT management
+Course Management APIs - CRUD operations for courses
+User Management APIs - Profile, enrollment, progress
+Payment APIs - Stripe integration, transaction handling
+Analytics APIs - Progress tracking, statistics
+ML APIs - Recommendations, RAG queries
 
+Access Swagger documentation at: http://localhost:5000/swagger
+🎨 UI/UX Highlights
 
+Modern Design Language with consistent branding
+Intuitive Navigation with breadcrumbs and search
+Interactive Elements with hover effects and animations
+Accessibility Features for inclusive design
+Dark/Light Mode support
+Toast Notifications for user feedback
 
-npm start
-The app will run at http://localhost:3000.
+📊 Performance Optimizations
 
-Key Features
-1. Authentication
-Backend: Handles user login, registration, user management, and password reset using JWT.
+Lazy Loading for improved initial load times
+Video Streaming optimization
+Database Query optimization
+Caching Strategies for frequently accessed data
+CDN Integration for static assets
+Async Operations for better responsiveness
 
-Frontend: Components for login, registration, and profile management.
+🔄 System Integration
 
-2. Course Management
-Backend: Manages courses, sections, lessons, and tags.
+Microservices Architecture for scalability
+API-First Design for flexibility
+Event-Driven Architecture for real-time updates
+Message Queuing for background tasks
+Load Balancing for high availability
 
-Frontend: Components for browsing, creating, and managing courses.
+🎯 Future Enhancements
 
-3. User Features
-Backend: Supports flashcards, to-do lists, timers, recommendations, and ratings.
+Mobile Application (React Native)
+Advanced AI Tutoring system
+Virtual Reality learning experiences
+Blockchain Certificates for achievements
+Advanced Analytics with ML insights
+Multi-Language Support for global reach
 
-Frontend: Interactive tools for students.
+🤝 Contributing
+We welcome contributions! Please see our Contributing Guidelines for details.
+📄 License
+This project is licensed under the MIT License - see the LICENSE file for details.
+👥 Team
 
-4. Admin and Payment Features
-Backend: Manages categories, contact messages, subscriptions, payments, and CSV imports.
+Full-Stack Development - [osama]
+Machine Learning 
+UI/UX Design 
 
-Frontend: Admin dashboard and payment flow.
+📞 Contact
+For any questions or support, please reach out:
 
-API Endpoints
-Authentication Endpoints:
-POST /api/Auth/Login: Authenticates user and returns JWT.
-
-POST /api/Auth/Register: Registers a new user.
-
-GET /api/Auth/GetUserById/{id}: Retrieves a user by ID.
-
-POST /api/Auth/ApproveTeacher/{id}: Approves a teacher account.
-
-Other endpoints for password reset, user details, and user management.
-
-Course Management Endpoints:
-GET /api/Course/GetAllCourses: Lists all courses.
-
-POST /api/Course/AddCourse: Creates a new course.
-
-GET /api/Course/GetInstructorCourses: Lists logged-in instructor’s courses.
-
-POST /api/Section/AddSection: Creates a new section.
-
-User Features Endpoints:
-GET /api/Flashcards/GetUserFlashCards: Lists user’s flashcards.
-
-POST /api/ToDo: Creates a new task.
-
-GET /api/TimerSettings/{userId}: Retrieves timer settings.
-
-GET /api/Recommendations: Retrieves course recommendations.
-
-Admin and Payment Features Endpoints:
-POST /api/Payment/create-checkout-session: Creates a Stripe checkout session.
-
-GET /api/Payment/payments: Lists payment records.
-
-POST /api/CSVImport/upload: Imports data from a CSV file.
-
-Frontend Components
-Authentication: Login.jsx, Register.jsx, Profile.jsx
-
-Course Management: CourseList.jsx, CreateCourse.jsx, CourseDetails.jsx
-
-User Features: FlashcardDashboard.jsx, ToDoList.jsx, PomodoroTimer.jsx
-
-Admin and Payment: CategoryManager.jsx, SubscriptionList.jsx, Checkout.jsx
-
-Payment Flow
-Stripe Payments:
-
-Stripe payments with 20% platform profit, 80% instructor profit.
-
-Admin management of categories and contact messages.
-
-Stripe Checkout:
-
-Uses @stripe/stripe-js and @stripe/react-stripe-js.
-
-Redirects to Stripe Checkout, then to success/cancel URLs.
-
-Webhook updates subscription status.
-
-Notes
-CORS: Backend allows requests from http://localhost:3000. Update FrontendUrl for production.
-
-Stripe: Configure webhook to https://your-domain/api/Payment/webhook. Use ngrok for local testing.
-
-Security: Store sensitive keys (JWT, Stripe) in environment variables, not in code.
-
-Testing
-Backend: Use Swagger (https://localhost:7018/swagger) or Postman.
-
-Frontend: Use React DevTools and browser console.
-
-Future Improvements
-Add real-time notifications for course updates or messages.
-
-Enhance recommendation algorithm using machine learning.
-
-Support multi-language content for global accessibility.
-
-Contributing
-This is a graduation project, but feedback is welcome! Please submit issues or pull requests to <repository-url> or send to on gmail osamaahmed52136@gmail.com.
-
-License
-This project is for academic purposes and is not licensed for commercial use.
+Email: [osamahmed52136@gmail.com]
+LinkedIn: [https://www.linkedin.com/in/osama-ahmed-599b43230/]
