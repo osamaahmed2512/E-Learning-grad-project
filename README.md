@@ -46,6 +46,13 @@ Teacher Registration Approval workflow
 Category Management for course organization
 Support Ticket Management system
 Comprehensive Analytics Dashboard
+## 🔑 Quick Access for Admin
+
+For quick testing, log in as admin using:
+
+- **Email:** `admin@gmail.com`  
+- **Password:** `Asdzxc123@`
+---
 
 🛠️ Technical Stack
 Frontend
@@ -267,3 +274,4 @@ For any questions or support, please reach out:
 
 Email: [osamahmed52136@gmail.com]
 LinkedIn: [https://www.linkedin.com/in/osama-ahmed-599b43230/]
+
